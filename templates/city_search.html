@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Search Cities — Traveloop{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('search_city') }}" class="nav-item active"><i class="fa fa-search-location"></i><span>Search Cities</span></a>
+      <a href="{{ url_for('search_activity') }}" class="nav-item"><i class="fa fa-hiking"></i><span>Activities</span></a>
+      <a href="{{ url_for('analytics') }}" class="nav-item"><i class="fa fa-chart-line"></i><span>Analytics</span></a>
+      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Discover Destinations</h2>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="search-hero">
+        <h1>Where do you want to go?</h1>
+        <form method="GET" class="search-form-large">
+          <i class="fa fa-search"></i>
+          <input type="text" name="q" placeholder="Search cities or countries..." value="{{ query or '' }}"/>
+          <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+      </div>
+
+      <div class="cities-grid">
+        {% for city in cities %}
+        <div class="city-card">
+          <div class="city-header">
+            <div class="city-icon"><i class="fa fa-city"></i></div>
+            <div class="city-rating">
+              <i class="fa fa-star"></i>
+              <span>{{ city.popularity }}/100</span>
+            </div>
+          </div>
+          <h3 class="city-name">{{ city.name }}</h3>
+          <p class="city-country"><i class="fa fa-map-marker-alt"></i> {{ city.country }}</p>
+          <div class="city-stats">
+            <div class="stat">
+              <span class="stat-label">Cost Index</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ city.cost_index }}%"></div>
+              </div>
+              <span class="stat-value">{{ city.cost_index }}/100</span>
+            </div>
+          </div>
+          <div class="city-actions">
+            <form method="POST" action="{{ url_for('save_destination') }}" style="display:inline">
+              <input type="hidden" name="city_name" value="{{ city.name }}"/>
+              <input type="hidden" name="country" value="{{ city.country }}"/>
+              <input type="hidden" name="cost_index" value="{{ city.cost_index }}"/>
+              <input type="hidden" name="popularity" value="{{ city.popularity }}"/>
+              <button type="submit" class="btn btn-ghost btn-sm"><i class="fa fa-bookmark"></i> Save</button>
+            </form>
+            <button class="btn btn-primary btn-sm" onclick="alert('Add to trip feature coming soon!')"><i class="fa fa-plus"></i> Add to Trip</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if not cities %}
+      <div class="empty-state">
+        <i class="fa fa-search-location"></i>
+        <h3>No cities found</h3>
+        <p>Try a different search term</p>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

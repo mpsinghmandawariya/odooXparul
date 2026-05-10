@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Budget — {{ trip.trip_name }}{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('search_city') }}" class="nav-item"><i class="fa fa-search-location"></i><span>Search Cities</span></a>
+      <a href="{{ url_for('search_activity') }}" class="nav-item"><i class="fa fa-hiking"></i><span>Activities</span></a>
+      <a href="{{ url_for('analytics') }}" class="nav-item"><i class="fa fa-chart-line"></i><span>Analytics</span></a>
+      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Budget — {{ trip.trip_name }}</h2>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="budget-overview">
+        <div class="budget-card">
+          <div class="budget-icon"><i class="fa fa-wallet"></i></div>
+          <div class="budget-info">
+            <span class="budget-label">Total Budget</span>
+            <span class="budget-amount">${{ "%.2f"|format(total_budget) }}</span>
+          </div>
+        </div>
+        <div class="budget-card">
+          <div class="budget-icon spent"><i class="fa fa-credit-card"></i></div>
+          <div class="budget-info">
+            <span class="budget-label">Total Spent</span>
+            <span class="budget-amount spent">${{ "%.2f"|format(total_spent) }}</span>
+          </div>
+        </div>
+        <div class="budget-card">
+          <div class="budget-icon {% if remaining < 0 %}danger{% else %}success{% endif %}"><i class="fa fa-piggy-bank"></i></div>
+          <div class="budget-info">
+            <span class="budget-label">Remaining</span>
+            <span class="budget-amount {% if remaining < 0 %}danger{% else %}success{% endif %}">${{ "%.2f"|format(remaining) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="budget-grid">
+        <div class="budget-section">
+          <h3 class="section-title">Expense Breakdown</h3>
+          <div class="chart-container">
+            <canvas id="expenseChart"></canvas>
+          </div>
+        </div>
+
+        <div class="budget-section">
+          <h3 class="section-title">Add Expense</h3>
+          <form method="POST" action="{{ url_for('add_expense', trip_id=trip.id) }}" class="expense-form">
+            <div class="form-group">
+              <label>Category</label>
+              <select name="category" required>
+                <option value="Hotels">Hotels</option>
+                <option value="Food">Food</option>
+                <option value="Travel">Travel</option>
+                <option value="Activities">Activities</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Amount ($)</label>
+              <input type="number" name="amount" step="0.01" required/>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <input type="text" name="description" placeholder="Optional"/>
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" name="expense_date"/>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full"><i class="fa fa-plus"></i> Add Expense</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="expense-list">
+        <h3 class="section-title">Recent Expenses</h3>
+        {% if trip.expenses %}
+        <table class="expense-table">
+          <thead>
+            <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr>
+          </thead>
+          <tbody>
+            {% for exp in trip.expenses %}
+            <tr>
+              <td>{{ exp.expense_date or 'N/A' }}</td>
+              <td><span class="category-badge">{{ exp.category }}</span></td>
+              <td>{{ exp.description or '—' }}</td>
+              <td class="amount">${{ "%.2f"|format(exp.amount) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state-small"><i class="fa fa-receipt"></i><p>No expenses recorded yet</p></div>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const ctx = document.getElementById('expenseChart');
+new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: {{ categories.keys()|list|tojson }},
+    datasets: [{
+      data: {{ categories.values()|list|tojson }},
+      backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { color: '#f8fafc' } }
+    }
+  }
+});
+</script>
+{% endblock %}

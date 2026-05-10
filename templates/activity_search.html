@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Activities — Traveloop{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('search_city') }}" class="nav-item"><i class="fa fa-search-location"></i><span>Search Cities</span></a>
+      <a href="{{ url_for('search_activity') }}" class="nav-item active"><i class="fa fa-hiking"></i><span>Activities</span></a>
+      <a href="{{ url_for('analytics') }}" class="nav-item"><i class="fa fa-chart-line"></i><span>Analytics</span></a>
+      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Discover Activities</h2>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="category-filters">
+        <a href="{{ url_for('search_activity', category='all') }}" class="filter-chip {% if category == 'all' %}active{% endif %}">All</a>
+        <a href="{{ url_for('search_activity', category='adventure') }}" class="filter-chip {% if category == 'adventure' %}active{% endif %}">Adventure</a>
+        <a href="{{ url_for('search_activity', category='food') }}" class="filter-chip {% if category == 'food' %}active{% endif %}">Food</a>
+        <a href="{{ url_for('search_activity', category='historical') }}" class="filter-chip {% if category == 'historical' %}active{% endif %}">Historical</a>
+        <a href="{{ url_for('search_activity', category='nature') }}" class="filter-chip {% if category == 'nature' %}active{% endif %}">Nature</a>
+        <a href="{{ url_for('search_activity', category='nightlife') }}" class="filter-chip {% if category == 'nightlife' %}active{% endif %}">Nightlife</a>
+        <a href="{{ url_for('search_activity', category='shopping') }}" class="filter-chip {% if category == 'shopping' %}active{% endif %}">Shopping</a>
+        <a href="{{ url_for('search_activity', category='relaxation') }}" class="filter-chip {% if category == 'relaxation' %}active{% endif %}">Relaxation</a>
+      </div>
+
+      <div class="activities-grid">
+        {% for activity in activities %}
+        <div class="activity-card">
+          <div class="activity-header">
+            <span class="activity-category">{{ activity.category }}</span>
+            <div class="activity-rating">
+              <i class="fa fa-star"></i>
+              <span>{{ activity.rating }}</span>
+            </div>
+          </div>
+          <h3 class="activity-name">{{ activity.name }}</h3>
+          <div class="activity-meta">
+            <span><i class="fa fa-clock"></i> {{ activity.duration }}</span>
+            <span class="activity-price">${{ activity.cost }}</span>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="alert('Add to itinerary feature coming soon!')">
+            <i class="fa fa-plus"></i> Add to Itinerary
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

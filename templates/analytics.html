@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Analytics — Traveloop{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('search_city') }}" class="nav-item"><i class="fa fa-search-location"></i><span>Search Cities</span></a>
+      <a href="{{ url_for('search_activity') }}" class="nav-item"><i class="fa fa-hiking"></i><span>Activities</span></a>
+      <a href="{{ url_for('analytics') }}" class="nav-item active"><i class="fa fa-chart-line"></i><span>Analytics</span></a>
+      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Travel Analytics</h2>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="analytics-overview">
+        <div class="analytics-card">
+          <div class="analytics-icon"><i class="fa fa-suitcase-rolling"></i></div>
+          <div class="analytics-data">
+            <span class="analytics-value">{{ total_trips }}</span>
+            <span class="analytics-label">Total Trips</span>
+          </div>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-icon"><i class="fa fa-dollar-sign"></i></div>
+          <div class="analytics-data">
+            <span class="analytics-value">${{ "%.0f"|format(total_budget) }}</span>
+            <span class="analytics-label">Total Budget</span>
+          </div>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-icon"><i class="fa fa-map-marked-alt"></i></div>
+          <div class="analytics-data">
+            <span class="analytics-value">{{ most_visited }}</span>
+            <span class="analytics-label">Most Visited</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="analytics-section">
+          <h3 class="section-title">Activity Categories</h3>
+          <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <div class="analytics-section">
+          <h3 class="section-title">Travel Insights</h3>
+          <div class="insights-list">
+            <div class="insight-item">
+              <i class="fa fa-plane-departure"></i>
+              <div>
+                <h4>Travel Frequency</h4>
+                <p>You've planned {{ total_trips }} trip{{ 's' if total_trips != 1 }} so far</p>
+              </div>
+            </div>
+            <div class="insight-item">
+              <i class="fa fa-wallet"></i>
+              <div>
+                <h4>Average Budget</h4>
+                <p>${{ "%.0f"|format(total_budget / total_trips if total_trips > 0 else 0) }} per trip</p>
+              </div>
+            </div>
+            <div class="insight-item">
+              <i class="fa fa-star"></i>
+              <div>
+                <h4>Favorite Destination</h4>
+                <p>{{ most_visited }}</p>
+              </div>
+            </div>
+            <div class="insight-item">
+              <i class="fa fa-chart-line"></i>
+              <div>
+                <h4>Planning Status</h4>
+                <p>Keep exploring new destinations!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const ctx = document.getElementById('categoryChart');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: {{ categories.keys()|list|tojson }},
+    datasets: [{
+      label: 'Activities',
+      data: {{ categories.values()|list|tojson }},
+      backgroundColor: '#3b82f6'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      y: { 
+        beginAtZero: true,
+        ticks: { color: '#94a3b8' },
+        grid: { color: '#334155' }
+      },
+      x: {
+        ticks: { color: '#94a3b8' },
+        grid: { display: false }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

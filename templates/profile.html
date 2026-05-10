@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Profile — Traveloop{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('search_city') }}" class="nav-item"><i class="fa fa-search-location"></i><span>Search Cities</span></a>
+      <a href="{{ url_for('search_activity') }}" class="nav-item"><i class="fa fa-hiking"></i><span>Activities</span></a>
+      <a href="{{ url_for('analytics') }}" class="nav-item"><i class="fa fa-chart-line"></i><span>Analytics</span></a>
+      <a href="{{ url_for('profile') }}" class="nav-item active"><i class="fa fa-user-circle"></i><span>Profile</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Profile & Settings</h2>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="profile-header">
+        <div class="profile-avatar-large">{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</div>
+        <div class="profile-info">
+          <h1>{{ current_user.first_name }} {{ current_user.last_name }}</h1>
+          <p>{{ current_user.email }}</p>
+          <span class="profile-badge">Member since {{ current_user.created_at.strftime('%B %Y') }}</span>
+        </div>
+      </div>
+
+      <div class="profile-grid">
+        <div class="profile-section">
+          <h3 class="section-title">Personal Information</h3>
+          <form method="POST" action="{{ url_for('profile') }}">
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>First Name</label>
+                <input type="text" name="first_name" value="{{ current_user.first_name }}" required/>
+              </div>
+              <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" name="last_name" value="{{ current_user.last_name }}" required/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" value="{{ current_user.email }}" disabled/>
+              <small class="form-hint">Email cannot be changed</small>
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="tel" name="phone" value="{{ current_user.phone or '' }}"/>
+            </div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>City</label>
+                <input type="text" name="city" value="{{ current_user.city or '' }}"/>
+              </div>
+              <div class="form-group">
+                <label>Country</label>
+                <input type="text" name="country" value="{{ current_user.country or '' }}"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Language</label>
+              <select name="language">
+                <option value="en" {% if current_user.language == 'en' %}selected{% endif %}>English</option>
+                <option value="es" {% if current_user.language == 'es' %}selected{% endif %}>Spanish</option>
+                <option value="fr" {% if current_user.language == 'fr' %}selected{% endif %}>French</option>
+                <option value="de" {% if current_user.language == 'de' %}selected{% endif %}>German</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Changes</button>
+          </form>
+        </div>
+
+        <div class="profile-section">
+          <h3 class="section-title">Security</h3>
+          <form method="POST" action="{{ url_for('change_password') }}">
+            <div class="form-group">
+              <label>Current Password</label>
+              <input type="password" name="current_password" required/>
+            </div>
+            <div class="form-group">
+              <label>New Password</label>
+              <input type="password" name="new_password" required/>
+            </div>
+            <div class="form-group">
+              <label>Confirm New Password</label>
+              <input type="password" name="confirm_password" required/>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-lock"></i> Change Password</button>
+          </form>
+
+          <div class="profile-stats">
+            <h4>Account Stats</h4>
+            <div class="stat-row">
+              <span>Total Trips</span>
+              <span class="stat-value">{{ current_user.trips|length }}</span>
+            </div>
+            <div class="stat-row">
+              <span>Saved Destinations</span>
+              <span class="stat-value">{{ current_user.saved_destinations|length }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
