@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}403 - Access Denied{% endblock %}
+{% block body %}
+<div class="error-page">
+  <div class="error-container">
+    <div class="error-icon">
+      <i class="fa fa-lock"></i>
+      <span class="error-code">403</span>
+    </div>
+    <h1 class="error-title">Access Denied</h1>
+    <p class="error-message">You don't have permission to access this resource. Please log in or contact the trip owner.</p>
+    <div class="error-actions">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary"><i class="fa fa-home"></i> Go to Dashboard</a>
+      <a href="{{ url_for('login') }}" class="btn btn-secondary"><i class="fa fa-sign-in-alt"></i> Login</a>
+    </div>
+    <div class="error-suggestions">
+      <p>Possible reasons:</p>
+      <ul>
+        <li>You're not logged in</li>
+        <li>You don't own this trip</li>
+        <li>You haven't been invited to collaborate</li>
+        <li>Your session has expired</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<style>
+.error-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  padding: 2rem;
+}
+
+.error-container {
+  max-width: 600px;
+  text-align: center;
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 3rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.error-icon {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.error-icon i {
+  font-size: 6rem;
+  color: #f59e0b;
+  opacity: 0.3;
+}
+
+.error-code {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 4rem;
+  font-weight: 700;
+  color: #f8fafc;
+  text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+}
+
+.error-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  font-size: 1.1rem;
+  color: #cbd5e1;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.error-suggestions {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.error-suggestions p {
+  color: #94a3b8;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.error-suggestions ul {
+  list-style: none;
+  padding: 0;
+}
+
+.error-suggestions li {
+  margin: 0.5rem 0;
+  color: #cbd5e1;
+}
+
+@media (max-width: 768px) {
+  .error-container {
+    padding: 2rem;
+  }
+  
+  .error-icon i {
+    font-size: 4rem;
+  }
+  
+  .error-code {
+    font-size: 3rem;
+  }
+  
+  .error-title {
+    font-size: 1.5rem;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+  }
+}
+</style>
+{% endblock %}

@@ -432,6 +432,21 @@ def analytics():
     return render_template('analytics.html', total_trips=total_trips, total_budget=total_budget,
                          most_visited=most_visited, categories=categories)
 
+# ── Error Handlers ──────────────────────────────────────────────────────────
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html'), 500
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('403.html'), 403
+
 if __name__ == '__main__':
     app.run(debug=True)
 
