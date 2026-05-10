@@ -1,134 +1,157 @@
-{% extends "base.html" %}
-{% block title %}Budget — {{ trip.trip_name }}{% endblock %}
-{% block body %}
-<div class="app-layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
-    <nav class="sidebar-nav">
-      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
-      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
-      <a href="{{ url_for('search_city') }}" class="nav-item"><i class="fa fa-search-location"></i><span>Search Cities</span></a>
-      <a href="{{ url_for('search_activity') }}" class="nav-item"><i class="fa fa-hiking"></i><span>Activities</span></a>
-      <a href="{{ url_for('analytics') }}" class="nav-item"><i class="fa fa-chart-line"></i><span>Analytics</span></a>
-      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
-      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
-    </nav>
-  </aside>
+{% extends "base_premium.html" %}
 
-  <main class="main-content">
-    <header class="topbar">
-      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
-      <h2 class="topbar-title">Budget — {{ trip.trip_name }}</h2>
-    </header>
+{% block title %}Budget - {{ trip.trip_name }}{% endblock %}
 
-    <div class="content-wrapper">
-      <div class="budget-overview">
-        <div class="budget-card">
-          <div class="budget-icon"><i class="fa fa-wallet"></i></div>
-          <div class="budget-info">
-            <span class="budget-label">Total Budget</span>
-            <span class="budget-amount">${{ "%.2f"|format(total_budget) }}</span>
-          </div>
-        </div>
-        <div class="budget-card">
-          <div class="budget-icon spent"><i class="fa fa-credit-card"></i></div>
-          <div class="budget-info">
-            <span class="budget-label">Total Spent</span>
-            <span class="budget-amount spent">${{ "%.2f"|format(total_spent) }}</span>
-          </div>
-        </div>
-        <div class="budget-card">
-          <div class="budget-icon {% if remaining < 0 %}danger{% else %}success{% endif %}"><i class="fa fa-piggy-bank"></i></div>
-          <div class="budget-info">
-            <span class="budget-label">Remaining</span>
-            <span class="budget-amount {% if remaining < 0 %}danger{% else %}success{% endif %}">${{ "%.2f"|format(remaining) }}</span>
-          </div>
-        </div>
-      </div>
+{% block content %}
 
-      <div class="budget-grid">
-        <div class="budget-section">
-          <h3 class="section-title">Expense Breakdown</h3>
-          <div class="chart-container">
-            <canvas id="expenseChart"></canvas>
-          </div>
+<section class="section">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">Budget - {{ trip.trip_name }}</h2>
+            <p style="color: var(--text-secondary);">Track your expenses and manage your budget</p>
         </div>
-
-        <div class="budget-section">
-          <h3 class="section-title">Add Expense</h3>
-          <form method="POST" action="{{ url_for('add_expense', trip_id=trip.id) }}" class="expense-form">
-            <div class="form-group">
-              <label>Category</label>
-              <select name="category" required>
-                <option value="Hotels">Hotels</option>
-                <option value="Food">Food</option>
-                <option value="Travel">Travel</option>
-                <option value="Activities">Activities</option>
-                <option value="Shopping">Shopping</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Amount ($)</label>
-              <input type="number" name="amount" step="0.01" required/>
-            </div>
-            <div class="form-group">
-              <label>Description</label>
-              <input type="text" name="description" placeholder="Optional"/>
-            </div>
-            <div class="form-group">
-              <label>Date</label>
-              <input type="date" name="expense_date"/>
-            </div>
-            <button type="submit" class="btn btn-primary btn-full"><i class="fa fa-plus"></i> Add Expense</button>
-          </form>
-        </div>
-      </div>
-
-      <div class="expense-list">
-        <h3 class="section-title">Recent Expenses</h3>
-        {% if trip.expenses %}
-        <table class="expense-table">
-          <thead>
-            <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr>
-          </thead>
-          <tbody>
-            {% for exp in trip.expenses %}
-            <tr>
-              <td>{{ exp.expense_date or 'N/A' }}</td>
-              <td><span class="category-badge">{{ exp.category }}</span></td>
-              <td>{{ exp.description or '—' }}</td>
-              <td class="amount">${{ "%.2f"|format(exp.amount) }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% else %}
-        <div class="empty-state-small"><i class="fa fa-receipt"></i><p>No expenses recorded yet</p></div>
-        {% endif %}
-      </div>
     </div>
-  </main>
-</div>
+
+    <!-- Budget Overview -->
+    <div class="grid grid-3" style="margin-bottom: 3rem;">
+        <div class="glass-card" style="padding: 2rem; text-align: center;">
+            <div style="width: 64px; height: 64px; margin: 0 auto 1rem; background: var(--accent-gradient); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">Total Budget</p>
+            <h3 style="font-size: 2rem; color: var(--accent-cyan);">${{ "%.2f"|format(total_budget) }}</h3>
+        </div>
+        
+        <div class="glass-card" style="padding: 2rem; text-align: center;">
+            <div style="width: 64px; height: 64px; margin: 0 auto 1rem; background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">Total Spent</p>
+            <h3 style="font-size: 2rem; color: #EF4444;">${{ "%.2f"|format(total_spent) }}</h3>
+        </div>
+        
+        <div class="glass-card" style="padding: 2rem; text-align: center;">
+            <div style="width: 64px; height: 64px; margin: 0 auto 1rem; background: linear-gradient(135deg, {% if remaining < 0 %}#EF4444{% else %}#22C55E{% endif %} 0%, {% if remaining < 0 %}#DC2626{% else %}#16A34A{% endif %} 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                <i class="fas fa-piggy-bank"></i>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">Remaining</p>
+            <h3 style="font-size: 2rem; color: {% if remaining < 0 %}#EF4444{% else %}#22C55E{% endif %};">${{ "%.2f"|format(remaining) }}</h3>
+        </div>
+    </div>
+
+    <div class="grid grid-2" style="gap: 2rem;">
+        <!-- Expense Breakdown Chart -->
+        <div class="glass-card" style="padding: 2rem;">
+            <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Expense Breakdown</h3>
+            <div style="max-width: 400px; margin: 0 auto;">
+                <canvas id="expenseChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Add Expense Form -->
+        <div class="glass-card" style="padding: 2rem;">
+            <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Add Expense</h3>
+            <form method="POST" action="{{ url_for('trips.add_expense', trip_id=trip.id) }}">
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Category</label>
+                    <select name="category" required
+                            style="width: 100%; padding: 0.875rem 1rem; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); font-size: 1rem;">
+                        <option value="Hotels">Hotels</option>
+                        <option value="Food">Food</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Activities">Activities</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Amount ($)</label>
+                    <input type="number" name="amount" step="0.01" required
+                           style="width: 100%; padding: 0.875rem 1rem; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); font-size: 1rem;" />
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Description</label>
+                    <input type="text" name="description" placeholder="Optional"
+                           style="width: 100%; padding: 0.875rem 1rem; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); font-size: 1rem;" />
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Date</label>
+                    <input type="date" name="expense_date"
+                           style="width: 100%; padding: 0.875rem 1rem; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); font-size: 1rem;" />
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-plus"></i>
+                    Add Expense
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recent Expenses -->
+    <div class="glass-card" style="padding: 2rem; margin-top: 2rem;">
+        <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Recent Expenses</h3>
+        {% if trip.expenses %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--glass-border);">
+                        <th style="text-align: left; padding: 0.75rem; color: var(--text-secondary); font-weight: 600;">Date</th>
+                        <th style="text-align: left; padding: 0.75rem; color: var(--text-secondary); font-weight: 600;">Category</th>
+                        <th style="text-align: left; padding: 0.75rem; color: var(--text-secondary); font-weight: 600;">Description</th>
+                        <th style="text-align: right; padding: 0.75rem; color: var(--text-secondary); font-weight: 600;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exp in trip.expenses %}
+                    <tr style="border-bottom: 1px solid var(--glass-border);">
+                        <td style="padding: 0.75rem;">{{ exp.expense_date or 'N/A' }}</td>
+                        <td style="padding: 0.75rem;">
+                            <span style="background: var(--accent-gradient); padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.875rem;">
+                                {{ exp.category }}
+                            </span>
+                        </td>
+                        <td style="padding: 0.75rem; color: var(--text-secondary);">{{ exp.description or '—' }}</td>
+                        <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: var(--accent-cyan);">${{ "%.2f"|format(exp.amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-receipt"></i></div>
+            <p class="empty-state-text">No expenses recorded yet</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 const ctx = document.getElementById('expenseChart');
 new Chart(ctx, {
-  type: 'doughnut',
-  data: {
-    labels: {{ categories.keys()|list|tojson }},
-    datasets: [{
-      data: {{ categories.values()|list|tojson }},
-      backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { position: 'bottom', labels: { color: '#f8fafc' } }
+    type: 'doughnut',
+    data: {
+        labels: {{ categories.keys()|list|tojson }},
+        datasets: [{
+            data: {{ categories.values()|list|tojson }},
+            backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { 
+                position: 'bottom', 
+                labels: { color: '#f8fafc' } 
+            }
+        }
     }
-  }
 });
 </script>
+
 {% endblock %}

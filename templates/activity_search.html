@@ -1,60 +1,94 @@
-{% extends "base.html" %}
-{% block title %}Activities — Traveloop{% endblock %}
-{% block body %}
-<div class="app-layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
-    <nav class="sidebar-nav">
-      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
-      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
-      <a href="{{ url_for('search_city') }}" class="nav-item"><i class="fa fa-search-location"></i><span>Search Cities</span></a>
-      <a href="{{ url_for('search_activity') }}" class="nav-item active"><i class="fa fa-hiking"></i><span>Activities</span></a>
-      <a href="{{ url_for('analytics') }}" class="nav-item"><i class="fa fa-chart-line"></i><span>Analytics</span></a>
-      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
-      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
-    </nav>
-  </aside>
+{% extends "base_premium.html" %}
 
-  <main class="main-content">
-    <header class="topbar">
-      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
-      <h2 class="topbar-title">Discover Activities</h2>
-    </header>
+{% block title %}Discover Activities - Traveloop{% endblock %}
 
-    <div class="content-wrapper">
-      <div class="category-filters">
-        <a href="{{ url_for('search_activity', category='all') }}" class="filter-chip {% if category == 'all' %}active{% endif %}">All</a>
-        <a href="{{ url_for('search_activity', category='adventure') }}" class="filter-chip {% if category == 'adventure' %}active{% endif %}">Adventure</a>
-        <a href="{{ url_for('search_activity', category='food') }}" class="filter-chip {% if category == 'food' %}active{% endif %}">Food</a>
-        <a href="{{ url_for('search_activity', category='historical') }}" class="filter-chip {% if category == 'historical' %}active{% endif %}">Historical</a>
-        <a href="{{ url_for('search_activity', category='nature') }}" class="filter-chip {% if category == 'nature' %}active{% endif %}">Nature</a>
-        <a href="{{ url_for('search_activity', category='nightlife') }}" class="filter-chip {% if category == 'nightlife' %}active{% endif %}">Nightlife</a>
-        <a href="{{ url_for('search_activity', category='shopping') }}" class="filter-chip {% if category == 'shopping' %}active{% endif %}">Shopping</a>
-        <a href="{{ url_for('search_activity', category='relaxation') }}" class="filter-chip {% if category == 'relaxation' %}active{% endif %}">Relaxation</a>
-      </div>
+{% block content %}
 
-      <div class="activities-grid">
+<!-- Category Filters -->
+<section class="section">
+    <div class="glass-card" style="padding: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; font-size: 1.5rem;">Discover Activities</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+            <a href="/search-activity?category=all" class="btn {% if category == 'all' %}btn-primary{% else %}btn-ghost{% endif %}" style="font-size: 0.875rem; padding: 0.625rem 1.25rem;">
+                All
+            </a>
+            <a href="/search-activity?category=adventure" class="btn {% if category == 'adventure' %}btn-primary{% else %}btn-ghost{% endif %}" style="font-size: 0.875rem; padding: 0.625rem 1.25rem;">
+                <i class="fas fa-mountain"></i>
+                Adventure
+            </a>
+            <a href="/search-activity?category=food" class="btn {% if category == 'food' %}btn-primary{% else %}btn-ghost{% endif %}" style="font-size: 0.875rem; padding: 0.625rem 1.25rem;">
+                <i class="fas fa-utensils"></i>
+                Food
+            </a>
+            <a href="/search-activity?category=historical" class="btn {% if category == 'historical' %}btn-primary{% else %}btn-ghost{% endif %}" style="font-size: 0.875rem; padding: 0.625rem 1.25rem;">
+                <i class="fas fa-landmark"></i>
+                Historical
+            </a>
+            <a href="/search-activity?category=nature" class="btn {% if category == 'nature' %}btn-primary{% else %}btn-ghost{% endif %}" style="font-size: 0.875rem; padding: 0.625rem 1.25rem;">
+                <i class="fas fa-tree"></i>
+                Nature
+            </a>
+            <a href="/search-activity?category=nightlife" class="btn {% if category == 'nightlife' %}btn-primary{% else %}btn-ghost{% endif %}" style="font-size: 0.875rem; padding: 0.625rem 1.25rem;">
+                <i class="fas fa-moon"></i>
+                Nightlife
+            </a>
+            <a href="/search-activity?category=shopping" class="btn {% if category == 'shopping' %}btn-primary{% else %}btn-ghost{% endif %}" style="font-size: 0.875rem; padding: 0.625rem 1.25rem;">
+                <i class="fas fa-shopping-bag"></i>
+                Shopping
+            </a>
+            <a href="/search-activity?category=relaxation" class="btn {% if category == 'relaxation' %}btn-primary{% else %}btn-ghost{% endif %}" style="font-size: 0.875rem; padding: 0.625rem 1.25rem;">
+                <i class="fas fa-spa"></i>
+                Relaxation
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Activities Grid -->
+<section class="section">
+    <div class="grid grid-4">
         {% for activity in activities %}
-        <div class="activity-card">
-          <div class="activity-header">
-            <span class="activity-category">{{ activity.category }}</span>
-            <div class="activity-rating">
-              <i class="fa fa-star"></i>
-              <span>{{ activity.rating }}</span>
+        <div class="card animate-fadeInUp" style="animation-delay: {{ loop.index * 0.05 }}s;">
+            <div class="card-image" style="height: 180px;">
+                <img src="https://source.unsplash.com/600x400/?{{ activity.category }},{{ activity.name }}" 
+                     alt="{{ activity.name }}"
+                     onerror="this.src='https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80'">
+                <div class="card-overlay"></div>
+                <div class="card-badge">
+                    {{ activity.category }}
+                </div>
             </div>
-          </div>
-          <h3 class="activity-name">{{ activity.name }}</h3>
-          <div class="activity-meta">
-            <span><i class="fa fa-clock"></i> {{ activity.duration }}</span>
-            <span class="activity-price">${{ activity.cost }}</span>
-          </div>
-          <button class="btn btn-primary btn-full" onclick="alert('Add to itinerary feature coming soon!')">
-            <i class="fa fa-plus"></i> Add to Itinerary
-          </button>
+            <div class="card-content" style="padding: 1rem;">
+                <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem;">{{ activity.name }}</h3>
+                
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
+                    <span>
+                        <i class="fas fa-clock" style="color: var(--accent-cyan);"></i>
+                        {{ activity.duration }}
+                    </span>
+                    <span>
+                        <i class="fas fa-star" style="color: #FCD34D;"></i>
+                        {{ activity.rating }}
+                    </span>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.25rem; font-weight: 700; color: var(--accent-cyan);">
+                        {% if activity.cost == 0 %}
+                        Free
+                        {% else %}
+                        ${{ activity.cost }}
+                        {% endif %}
+                    </span>
+                    <button class="btn btn-primary" style="font-size: 0.75rem; padding: 0.5rem 1rem;" onclick="alert('Add to itinerary feature coming soon!')">
+                        <i class="fas fa-plus"></i>
+                        Add
+                    </button>
+                </div>
+            </div>
         </div>
         {% endfor %}
-      </div>
     </div>
-  </main>
-</div>
+</section>
+
 {% endblock %}

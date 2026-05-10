@@ -3,6 +3,9 @@ Traveloop Production Configuration
 """
 import os
 from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Config:
     """Base configuration"""
@@ -23,17 +26,43 @@ class Config:
     
     # Admin
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@traveloop.com')
+    
+    # CSRF Protection
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_TIME_LIMIT = None
+    
+    # Rate Limiting
+    RATELIMIT_ENABLED = os.environ.get('RATELIMIT_ENABLED', 'True') == 'True'
+    RATELIMIT_STORAGE_URL = os.environ.get('REDIS_URL', 'memory://')
+    RATELIMIT_DEFAULT = os.environ.get('RATELIMIT_DEFAULT', '200 per day, 50 per hour')
+    
+    # Email Configuration
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True') == 'True'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@traveloop.com')
+    
+    # Redis
+    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    
+    # Allowed file extensions
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///database/traveloop.db'
+        f'sqlite:///{os.path.join(BASE_DIR, "database", "traveloop.db")}'
     SQLALCHEMY_ECHO = False
+    RATELIMIT_ENABLED = False
 
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     
     # PostgreSQL Database
     DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -41,7 +70,7 @@ class ProductionConfig(Config):
         DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
     
     SQLALCHEMY_DATABASE_URI = DATABASE_URL or \
-        'sqlite:///database/traveloop.db'
+        f'sqlite:///{os.path.join(BASE_DIR, "database", "traveloop.db")}'
     
     # Security
     SESSION_COOKIE_SECURE = True
@@ -55,6 +84,7 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
+    RATELIMIT_ENABLED = False
 
 # Configuration dictionary
 config = {

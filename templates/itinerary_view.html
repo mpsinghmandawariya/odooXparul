@@ -1,115 +1,130 @@
-{% extends "base.html" %}
-{% block title %}{{ trip.trip_name }} — Traveloop{% endblock %}
-{% block body %}
-<div class="app-layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
-    <nav class="sidebar-nav">
-      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
-      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
-      <a href="{{ url_for('create_trip') }}" class="nav-item"><i class="fa fa-plus-circle"></i><span>New Trip</span></a>
-      <a href="{{ url_for('search_city') }}" class="nav-item"><i class="fa fa-search-location"></i><span>Search Cities</span></a>
-      <a href="{{ url_for('search_activity') }}" class="nav-item"><i class="fa fa-hiking"></i><span>Activities</span></a>
-      <a href="{{ url_for('analytics') }}" class="nav-item"><i class="fa fa-chart-line"></i><span>Analytics</span></a>
-      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
-      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
-    </nav>
-    <div class="sidebar-user">
-      <div class="user-avatar">{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</div>
-      <div class="user-info">
-        <span class="user-name">{{ current_user.first_name }} {{ current_user.last_name }}</span>
-        <span class="user-email">{{ current_user.email }}</span>
-      </div>
+{% extends "base_premium.html" %}
+
+{% block title %}{{ trip.trip_name }} - Traveloop{% endblock %}
+
+{% block content %}
+
+<section class="section">
+    <!-- Trip Header -->
+    <div class="glass-card" style="padding: 2rem; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
+            <div>
+                <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">{{ trip.trip_name }}</h1>
+                <p style="color: var(--text-secondary); font-size: 1.125rem;">{{ trip.description or 'No description provided.' }}</p>
+            </div>
+            <a href="{{ url_for('trips.build_itinerary', trip_id=trip.id) }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i>
+                Edit Itinerary
+            </a>
+        </div>
+        
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-calendar-alt" style="color: var(--accent-cyan);"></i>
+                <span>{{ trip.start_date or 'TBD' }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-arrow-right" style="color: var(--text-muted);"></i>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-calendar-check" style="color: var(--accent-cyan);"></i>
+                <span>{{ trip.end_date or 'TBD' }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-left: auto;">
+                <i class="fas fa-map-pin" style="color: var(--accent-blue);"></i>
+                <span>{{ trip.stops|length }} Stop{{ 's' if trip.stops|length != 1 }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-wallet" style="color: var(--success);"></i>
+                {% set total = namespace(val=0) %}
+                {% for stop in trip.stops %}
+                    {% set total.val = total.val + stop.budget %}
+                    {% for act in stop.activities %}
+                        {% set total.val = total.val + act.activity_cost %}
+                    {% endfor %}
+                {% endfor %}
+                <span style="font-weight: 600; color: var(--success);">${{ "%.2f"|format(total.val) }}</span>
+            </div>
+        </div>
     </div>
-  </aside>
 
-  <main class="main-content">
-    <header class="topbar">
-      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
-      <h2 class="topbar-title">{{ trip.trip_name }}</h2>
-      <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn btn-ghost btn-sm"><i class="fa fa-edit"></i> Edit</a>
-    </header>
-
-    <div class="view-page">
-      <!-- Trip Summary -->
-      <div class="trip-summary-card">
-        <div class="summary-info">
-          <h1>{{ trip.trip_name }}</h1>
-          <p class="summary-desc">{{ trip.description or 'No description.' }}</p>
-          <div class="summary-meta">
-            <span><i class="fa fa-calendar-alt"></i> {{ trip.start_date or 'TBD' }}</span>
-            <span><i class="fa fa-arrow-right"></i></span>
-            <span><i class="fa fa-calendar-check"></i> {{ trip.end_date or 'TBD' }}</span>
-            <span class="badge"><i class="fa fa-map-pin"></i> {{ trip.stops|length }} Stop{{ 's' if trip.stops|length != 1 }}</span>
-          </div>
-        </div>
-        <div class="summary-total">
-          {% set total = namespace(val=0) %}
-          {% for stop in trip.stops %}
-            {% set total.val = total.val + stop.budget %}
-            {% for act in stop.activities %}
-              {% set total.val = total.val + act.activity_cost %}
-            {% endfor %}
-          {% endfor %}
-          <span class="total-label">Total Budget</span>
-          <span class="total-amount">${{ "%.2f"|format(total.val) }}</span>
-        </div>
-      </div>
-
-      <!-- Itinerary Timeline -->
-      {% if trip.stops %}
-      <div class="timeline">
+    <!-- Itinerary Timeline -->
+    {% if trip.stops %}
+    <div style="position: relative;">
         {% for stop in trip.stops %}
-        <div class="timeline-item">
-          <div class="timeline-dot"></div>
-          <div class="timeline-card">
-            <div class="timeline-header">
-              <div>
-                <h3 class="stop-title">{{ stop.section_title }}</h3>
-                <span class="stop-city"><i class="fa fa-map-marker-alt"></i> {{ stop.city_name or 'Location TBD' }}</span>
-              </div>
-              <div class="stop-meta-right">
-                {% if stop.start_date %}
-                <span class="date-badge">{{ stop.start_date }}{% if stop.end_date %} → {{ stop.end_date }}{% endif %}</span>
-                {% endif %}
-                <span class="budget-badge"><i class="fa fa-wallet"></i> ${{ "%.2f"|format(stop.budget) }}</span>
-              </div>
+        <div class="glass-card" style="padding: 2rem; margin-bottom: 2rem; position: relative;">
+            <!-- Timeline Dot -->
+            <div style="position: absolute; left: -1.5rem; top: 2rem; width: 1rem; height: 1rem; background: var(--accent-gradient); border-radius: 50%; border: 3px solid var(--bg-primary);"></div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
+                <div>
+                    <h3 style="font-size: 1.75rem; margin-bottom: 0.5rem;">{{ stop.section_title }}</h3>
+                    <p style="color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ stop.city_name or 'Location TBD' }}
+                    </p>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    {% if stop.start_date %}
+                    <span style="background: var(--bg-card); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem;">
+                        {{ stop.start_date }}{% if stop.end_date %} → {{ stop.end_date }}{% endif %}
+                    </span>
+                    {% endif %}
+                    <span style="background: var(--accent-gradient); padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600;">
+                        <i class="fas fa-wallet"></i> ${{ "%.2f"|format(stop.budget) }}
+                    </span>
+                </div>
             </div>
 
             {% if stop.activities %}
-            <div class="activities-list">
-              <h4><i class="fa fa-list-ul"></i> Activities</h4>
-              <table class="act-table">
-                <thead>
-                  <tr><th>Activity</th><th>Description</th><th>Cost</th></tr>
-                </thead>
-                <tbody>
-                  {% for act in stop.activities %}
-                  <tr>
-                    <td><i class="fa fa-circle-dot"></i> {{ act.activity_name }}</td>
-                    <td class="muted">{{ act.activity_description or '—' }}</td>
-                    <td class="cost">${{ "%.2f"|format(act.activity_cost) }}</td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
+            <div style="margin-top: 1.5rem;">
+                <h4 style="font-size: 1.125rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-list-ul" style="color: var(--accent-cyan);"></i>
+                    Activities
+                </h4>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--glass-border);">
+                                <th style="text-align: left; padding: 0.75rem; color: var(--text-secondary); font-weight: 600;">Activity</th>
+                                <th style="text-align: left; padding: 0.75rem; color: var(--text-secondary); font-weight: 600;">Description</th>
+                                <th style="text-align: right; padding: 0.75rem; color: var(--text-secondary); font-weight: 600;">Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for act in stop.activities %}
+                            <tr style="border-bottom: 1px solid var(--glass-border);">
+                                <td style="padding: 0.75rem;">
+                                    <i class="fas fa-circle-dot" style="color: var(--accent-blue); font-size: 0.5rem; margin-right: 0.5rem;"></i>
+                                    {{ act.activity_name }}
+                                </td>
+                                <td style="padding: 0.75rem; color: var(--text-secondary);">{{ act.activity_description or '—' }}</td>
+                                <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: var(--accent-cyan);">${{ "%.2f"|format(act.activity_cost) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
             {% else %}
-            <p class="no-activities">No activities added for this stop.</p>
+            <p style="color: var(--text-muted); font-style: italic; margin-top: 1rem;">No activities added for this stop.</p>
             {% endif %}
-          </div>
         </div>
         {% endfor %}
-      </div>
-      {% else %}
-      <div class="empty-state">
-        <i class="fa fa-route"></i>
-        <h3>No itinerary yet</h3>
-        <p>Start building your trip plan!</p>
-        <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn btn-primary">Build Itinerary</a>
-      </div>
-      {% endif %}
     </div>
-  </main>
-</div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-route"></i>
+        </div>
+        <h3 class="empty-state-title">No itinerary yet</h3>
+        <p class="empty-state-text">Start building your trip plan!</p>
+        <a href="{{ url_for('trips.build_itinerary', trip_id=trip.id) }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i>
+            Build Itinerary
+        </a>
+    </div>
+    {% endif %}
+</section>
+
 {% endblock %}

@@ -1,127 +1,150 @@
-{% extends "base.html" %}
+{% extends "base_premium.html" %}
 {% block title %}Analytics — Traveloop{% endblock %}
-{% block body %}
-<div class="app-layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
-    <nav class="sidebar-nav">
-      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
-      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
-      <a href="{{ url_for('search_city') }}" class="nav-item"><i class="fa fa-search-location"></i><span>Search Cities</span></a>
-      <a href="{{ url_for('search_activity') }}" class="nav-item"><i class="fa fa-hiking"></i><span>Activities</span></a>
-      <a href="{{ url_for('analytics') }}" class="nav-item active"><i class="fa fa-chart-line"></i><span>Analytics</span></a>
-      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
-      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
-    </nav>
-  </aside>
+{% block content %}
 
-  <main class="main-content">
-    <header class="topbar">
-      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
-      <h2 class="topbar-title">Travel Analytics</h2>
-    </header>
-
-    <div class="content-wrapper">
-      <div class="analytics-overview">
-        <div class="analytics-card">
-          <div class="analytics-icon"><i class="fa fa-suitcase-rolling"></i></div>
-          <div class="analytics-data">
-            <span class="analytics-value">{{ total_trips }}</span>
-            <span class="analytics-label">Total Trips</span>
-          </div>
-        </div>
-        <div class="analytics-card">
-          <div class="analytics-icon"><i class="fa fa-dollar-sign"></i></div>
-          <div class="analytics-data">
-            <span class="analytics-value">${{ "%.0f"|format(total_budget) }}</span>
-            <span class="analytics-label">Total Budget</span>
-          </div>
-        </div>
-        <div class="analytics-card">
-          <div class="analytics-icon"><i class="fa fa-map-marked-alt"></i></div>
-          <div class="analytics-data">
-            <span class="analytics-value">{{ most_visited }}</span>
-            <span class="analytics-label">Most Visited</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="analytics-grid">
-        <div class="analytics-section">
-          <h3 class="section-title">Activity Categories</h3>
-          <div class="chart-container">
-            <canvas id="categoryChart"></canvas>
-          </div>
-        </div>
-
-        <div class="analytics-section">
-          <h3 class="section-title">Travel Insights</h3>
-          <div class="insights-list">
-            <div class="insight-item">
-              <i class="fa fa-plane-departure"></i>
-              <div>
-                <h4>Travel Frequency</h4>
-                <p>You've planned {{ total_trips }} trip{{ 's' if total_trips != 1 }} so far</p>
-              </div>
-            </div>
-            <div class="insight-item">
-              <i class="fa fa-wallet"></i>
-              <div>
-                <h4>Average Budget</h4>
-                <p>${{ "%.0f"|format(total_budget / total_trips if total_trips > 0 else 0) }} per trip</p>
-              </div>
-            </div>
-            <div class="insight-item">
-              <i class="fa fa-star"></i>
-              <div>
-                <h4>Favorite Destination</h4>
-                <p>{{ most_visited }}</p>
-              </div>
-            </div>
-            <div class="insight-item">
-              <i class="fa fa-chart-line"></i>
-              <div>
-                <h4>Planning Status</h4>
-                <p>Keep exploring new destinations!</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+<!-- Analytics Hero -->
+<section class="section">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Travel Analytics</h1>
+        <p style="color: var(--text-secondary); font-size: 1.1rem;">Track your travel journey and insights</p>
     </div>
-  </main>
-</div>
+</section>
+
+<!-- Stats Overview -->
+<section class="section">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-suitcase-rolling"></i>
+            </div>
+            <div class="stat-value">{{ total_trips }}</div>
+            <div class="stat-label">Total Trips</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--gradient-warm);">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-value">${{ "%.0f"|format(total_budget) }}</div>
+            <div class="stat-label">Total Budget</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--gradient-cool);">
+                <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <div class="stat-value">{{ most_visited }}</div>
+            <div class="stat-label">Most Visited</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--gradient-sunset);">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-value">${{ "%.0f"|format(total_budget / total_trips if total_trips > 0 else 0) }}</div>
+            <div class="stat-label">Avg Per Trip</div>
+        </div>
+    </div>
+</section>
+
+<!-- Analytics Grid -->
+<section class="section">
+    <div class="grid grid-2">
+        <!-- Activity Categories Chart -->
+        <div class="glass-card">
+            <h3 style="margin-bottom: 2rem;">Activity Categories</h3>
+            <div style="position: relative; height: 300px;">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Travel Insights -->
+        <div class="glass-card">
+            <h3 style="margin-bottom: 2rem;">Travel Insights</h3>
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-primary); border-radius: var(--radius-lg);">
+                    <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--gradient-primary); border-radius: var(--radius-md); color: white; font-size: 1.25rem;">
+                        <i class="fas fa-plane-departure"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 0.25rem; font-size: 1rem;">Travel Frequency</h4>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">You've planned {{ total_trips }} trip{{ 's' if total_trips != 1 }} so far</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-primary); border-radius: var(--radius-lg);">
+                    <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--gradient-warm); border-radius: var(--radius-md); color: white; font-size: 1.25rem;">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 0.25rem; font-size: 1rem;">Average Budget</h4>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">${{ "%.0f"|format(total_budget / total_trips if total_trips > 0 else 0) }} per trip</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-primary); border-radius: var(--radius-lg);">
+                    <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--gradient-cool); border-radius: var(--radius-md); color: white; font-size: 1.25rem;">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 0.25rem; font-size: 1rem;">Favorite Destination</h4>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">{{ most_visited }}</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-primary); border-radius: var(--radius-lg);">
+                    <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--gradient-sunset); border-radius: var(--radius-md); color: white; font-size: 1.25rem;">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 0.25rem; font-size: 1rem;">Planning Status</h4>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">Keep exploring new destinations!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 const ctx = document.getElementById('categoryChart');
 new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: {{ categories.keys()|list|tojson }},
-    datasets: [{
-      label: 'Activities',
-      data: {{ categories.values()|list|tojson }},
-      backgroundColor: '#3b82f6'
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false }
+    type: 'doughnut',
+    data: {
+        labels: {{ categories.keys()|list|tojson }},
+        datasets: [{
+            label: 'Activities',
+            data: {{ categories.values()|list|tojson }},
+            backgroundColor: [
+                '#2563EB',
+                '#14B8A6',
+                '#8B5CF6',
+                '#F59E0B',
+                '#EC4899',
+                '#10B981'
+            ],
+            borderWidth: 0
+        }]
     },
-    scales: {
-      y: { 
-        beginAtZero: true,
-        ticks: { color: '#94a3b8' },
-        grid: { color: '#334155' }
-      },
-      x: {
-        ticks: { color: '#94a3b8' },
-        grid: { display: false }
-      }
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 15,
+                    font: {
+                        size: 12,
+                        family: 'Inter'
+                    },
+                    color: '#64748B'
+                }
+            }
+        }
     }
-  }
 });
 </script>
+
 {% endblock %}

@@ -1,13 +1,13 @@
-{% extends "base.html" %}
+{% extends "base_premium.html" %}
 {% block title %}Export — {{ trip.trip_name }}{% endblock %}
 {% block body %}
 <div class="app-layout">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
     <nav class="sidebar-nav">
-      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
-      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
-      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+      <a href="{{ url_for('trips.dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('trips.my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('auth.logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
     </nav>
   </aside>
 
@@ -30,7 +30,7 @@
           <i class="fa fa-print fa-3x"></i>
           <h3>Print Itinerary</h3>
           <p>Print-friendly version of your trip</p>
-          <a href="{{ url_for('itinerary_view', trip_id=trip.id) }}" class="btn btn-primary" onclick="window.print()">Print</a>
+          <a href=""/itinerary/" + str(trip.id)" class="btn btn-primary" onclick="window.print()">Print</a>
         </div>
 
         <div class="export-card">
@@ -44,7 +44,7 @@
           <i class="fa fa-file-invoice fa-3x"></i>
           <h3>Export Invoice</h3>
           <p>Download expense invoice</p>
-          <a href="{{ url_for('invoice', trip_id=trip.id) }}" class="btn btn-primary">View Invoice</a>
+          <a href=""/invoice/" + str(trip.id)" class="btn btn-primary">View Invoice</a>
         </div>
       </div>
     </div>

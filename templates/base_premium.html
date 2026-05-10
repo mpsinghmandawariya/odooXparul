@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Traveloop - AI-Powered Travel Platform{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Premium CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    
+    <!-- Floating Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-plane-departure" style="font-size: 2rem; color: #3B82F6;"></i>
+            <h2>Traveloop</h2>
+        </div>
+        
+        <nav>
+            <ul class="sidebar-nav">
+                <li>
+                    <a href="{{ url_for('trips.dashboard') }}" class="{% if request.endpoint == 'trips.dashboard' %}active{% endif %}">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('trips.my_trips') }}" class="{% if 'trips' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-suitcase-rolling"></i>
+                        <span>My Trips</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('trips.search_city') }}" class="{% if 'search_city' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <span>Discover</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('trips.search_activity') }}" class="{% if 'search_activity' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-hiking"></i>
+                        <span>Activities</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('community.community') }}" class="{% if 'community' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-users"></i>
+                        <span>Community</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('trips.analytics') }}" class="{% if 'analytics' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('auth.profile') }}" class="{% if 'profile' in request.endpoint %}active{% endif %}">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('community.notifications') }}">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                        {% if unread_notifications_count() > 0 %}
+                        <span class="badge" style="margin-left: auto; background: #EF4444; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                            {{ unread_notifications_count() }}
+                        </span>
+                        {% endif %}
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div style="margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--glass-border);">
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost" style="width: 100%; justify-content: center;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+    
+    <!-- Top Navbar -->
+    <nav class="navbar">
+        <button class="navbar-icon" id="sidebarToggle" style="display: none;">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <form action="{{ url_for('trips.search_city') }}" method="GET" class="navbar-search" style="margin: 0;">
+            <i class="fas fa-search"></i>
+            <input type="text" name="q" placeholder="Search destinations, trips, activities...">
+        </form>
+        
+        <div class="navbar-actions">
+            <a href="{{ url_for('trips.create_trip') }}" class="navbar-icon" title="Create New Trip">
+                <i class="fas fa-plus"></i>
+            </a>
+            
+            <a href="{{ url_for('community.notifications') }}" class="navbar-icon" title="Notifications">
+                <i class="fas fa-bell"></i>
+                {% if unread_notifications_count() > 0 %}
+                <span class="badge">{{ unread_notifications_count() }}</span>
+                {% endif %}
+            </a>
+            
+            <div class="navbar-profile" id="profileDropdown" style="cursor: pointer; position: relative;">
+                <img src="https://ui-avatars.com/api/?name={{ current_user.first_name }}+{{ current_user.last_name }}&background=3B82F6&color=fff" alt="Profile">
+                <span style="font-weight: 500;">{{ current_user.first_name }}</span>
+                <i class="fas fa-chevron-down" style="font-size: 0.75rem; color: var(--text-muted);"></i>
+                
+                <div class="profile-dropdown" id="profileMenu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; min-width: 200px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); z-index: 1000;">
+                    <a href="{{ url_for('auth.profile') }}" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'" onmouseout="this.style.background='transparent'">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                    <a href="{{ url_for('trips.analytics') }}" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'" onmouseout="this.style.background='transparent'">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <div style="height: 1px; background: var(--glass-border); margin: 0.5rem 0;"></div>
+                    <a href="{{ url_for('auth.logout') }}" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #EF4444; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.background='transparent'">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div style="margin-bottom: 2rem;">
+                    {% for category, message in messages %}
+                        <div class="glass-card" style="padding: 1rem; margin-bottom: 1rem; border-left: 4px solid 
+                            {% if category == 'success' %}#22C55E
+                            {% elif category == 'error' %}#EF4444
+                            {% elif category == 'warning' %}#F59E0B
+                            {% else %}#06B6D4{% endif %};">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <i class="fas fa-
+                                    {% if category == 'success' %}check-circle
+                                    {% elif category == 'error' %}exclamation-circle
+                                    {% elif category == 'warning' %}exclamation-triangle
+                                    {% else %}info-circle{% endif %}" 
+                                    style="font-size: 1.5rem; color: 
+                                    {% if category == 'success' %}#22C55E
+                                    {% elif category == 'error' %}#EF4444
+                                    {% elif category == 'warning' %}#F59E0B
+                                    {% else %}#06B6D4{% endif %};"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <!-- Scripts -->
+    <script>
+        // Sidebar Toggle for Mobile
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        if (window.innerWidth <= 1024) {
+            sidebarToggle.style.display = 'flex';
+        }
+        
+        sidebarToggle?.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+        
+        // Close sidebar on outside click (mobile)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024) {
+                if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+        
+        // Profile Dropdown
+        const profileDropdown = document.getElementById('profileDropdown');
+        const profileMenu = document.getElementById('profileMenu');
+        
+        profileDropdown?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileMenu.style.display = profileMenu.style.display === 'none' ? 'block' : 'none';
+        });
+        
+        // Close profile dropdown on outside click
+        document.addEventListener('click', (e) => {
+            if (!profileDropdown?.contains(e.target)) {
+                profileMenu.style.display = 'none';
+            }
+        });
+        
+        // Smooth scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.card, .stat-card, .glass-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'all 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

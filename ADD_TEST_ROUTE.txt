@@ -1,0 +1,69 @@
+"""
+Add this test route to app.py temporarily to verify server is working
+"""
+
+# Add this route to app.py after the imports:
+
+@app.route('/test')
+def test_route():
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Test - Traveloop</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 50px auto;
+                padding: 20px;
+                background: #f5f5f5;
+            }
+            .success {
+                background: #d4edda;
+                border: 1px solid #c3e6cb;
+                color: #155724;
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }
+            .info {
+                background: #d1ecf1;
+                border: 1px solid #bee5eb;
+                color: #0c5460;
+                padding: 20px;
+                border-radius: 8px;
+            }
+            h1 { color: #333; }
+            ul { line-height: 1.8; }
+            a { color: #007bff; text-decoration: none; }
+            a:hover { text-decoration: underline; }
+        </style>
+    </head>
+    <body>
+        <div class="success">
+            <h1>✓ Server is Running!</h1>
+            <p>Flask application is working correctly.</p>
+        </div>
+        
+        <div class="info">
+            <h2>Available Routes:</h2>
+            <ul>
+                <li><a href="/">Home (redirects to login/dashboard)</a></li>
+                <li><a href="/login">Login Page</a></li>
+                <li><a href="/register">Register Page</a></li>
+                <li><a href="/dashboard">Dashboard (requires login)</a></li>
+                <li><a href="/search-city">Search Cities (requires login)</a></li>
+                <li><a href="/search-activity">Search Activities (requires login)</a></li>
+            </ul>
+            
+            <h2>Next Steps:</h2>
+            <ol>
+                <li>Go to <a href="/login">/login</a> to sign in</li>
+                <li>Or go to <a href="/register">/register</a> to create an account</li>
+                <li>After login, you'll be redirected to the dashboard</li>
+            </ol>
+        </div>
+    </body>
+    </html>
+    '''

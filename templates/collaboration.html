@@ -1,13 +1,13 @@
-{% extends "base.html" %}
+{% extends "base_premium.html" %}
 {% block title %}Collaboration — {{ trip.trip_name }}{% endblock %}
 {% block body %}
 <div class="app-layout">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
     <nav class="sidebar-nav">
-      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
-      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
-      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+      <a href="{{ url_for('trips.dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('trips.my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('auth.logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
     </nav>
   </aside>
 
@@ -48,7 +48,7 @@
             </div>
             <span class="role-badge">{{ collab.role }}</span>
           </div>
-          <form method="POST" action="{{ url_for('remove_collaborator', collab_id=collab.id) }}" style="display:inline">
+          <form method="POST" action="{{ url_for('trips.remove_collaborator', collab_id=collab.id) }}" style="display:inline">
             <button type="submit" class="icon-btn danger"><i class="fa fa-times"></i></button>
           </form>
         </div>

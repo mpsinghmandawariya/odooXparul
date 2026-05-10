@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_premium.html" %}
 {% block title %}Login — Traveloop{% endblock %}
 {% block body %}
 <div class="auth-page">
@@ -10,7 +10,7 @@
     <h2 class="auth-title">Welcome back</h2>
     <p class="auth-sub">Sign in to continue your journey</p>
 
-    <form method="POST" action="{{ url_for('login') }}" novalidate>
+    <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
       <div class="form-group">
         <label>Email Address</label>
         <div class="input-icon">
@@ -29,7 +29,7 @@
         </div>
       </div>
       <div class="form-row-between">
-        <a href="{{ url_for('forgot_password') }}" class="link-muted">Forgot password?</a>
+        <a href=""/forgot-password"" class="link-muted">Forgot password?</a>
       </div>
       <button type="submit" class="btn btn-primary btn-full">Sign In</button>
     </form>
@@ -41,7 +41,7 @@
       Continue with Google
     </button>
 
-    <p class="auth-footer">Don't have an account? <a href="{{ url_for('register') }}">Create one</a></p>
+    <p class="auth-footer">Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a></p>
   </div>
 </div>
 

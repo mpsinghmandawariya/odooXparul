@@ -1,153 +1,169 @@
-{% extends "base.html" %}
-{% block title %}My Trips — Traveloop{% endblock %}
-{% block body %}
-<div class="app-layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
-    <nav class="sidebar-nav">
-      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
-      <a href="{{ url_for('my_trips') }}" class="nav-item active"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
-      <a href="{{ url_for('search_city') }}" class="nav-item"><i class="fa fa-search-location"></i><span>Search Cities</span></a>
-      <a href="{{ url_for('search_activity') }}" class="nav-item"><i class="fa fa-hiking"></i><span>Activities</span></a>
-      <a href="{{ url_for('analytics') }}" class="nav-item"><i class="fa fa-chart-line"></i><span>Analytics</span></a>
-      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
-      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
-    </nav>
-    <div class="sidebar-user">
-      <div class="user-avatar">{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</div>
-      <div class="user-info">
-        <span class="user-name">{{ current_user.first_name }} {{ current_user.last_name }}</span>
-        <span class="user-email">{{ current_user.email }}</span>
-      </div>
+{% extends "base_premium.html" %}
+
+{% block title %}My Trips - Traveloop{% endblock %}
+
+{% block content %}
+
+<section class="section">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">My Trips</h2>
+            <p style="color: var(--text-secondary);">Manage all your travel adventures</p>
+        </div>
+        <a href="{{ url_for('trips.create_trip') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            New Trip
+        </a>
     </div>
-  </aside>
-
-  <main class="main-content">
-    <header class="topbar">
-      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
-      <h2 class="topbar-title">My Trips</h2>
-      <a href="{{ url_for('create_trip') }}" class="btn btn-primary"><i class="fa fa-plus"></i> New Trip</a>
-    </header>
-
-    <div class="content-wrapper">
-      <div class="search-filter-bar">
-        <div class="search-box">
-          <i class="fa fa-search"></i>
-          <input type="text" placeholder="Search trips..." id="tripSearch" oninput="searchTrips(this.value)"/>
-        </div>
-      </div>
-
-      <!-- Ongoing Trips -->
-      <section class="trip-section">
-        <div class="section-header-flex">
-          <h2 class="section-title"><i class="fa fa-plane-departure"></i> Ongoing Trips</h2>
-          <span class="count-badge">{{ ongoing|length }}</span>
-        </div>
+    
+    <!-- Ongoing Trips -->
+    <div style="margin-bottom: 3rem;">
+        <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-plane-departure" style="color: var(--accent-cyan);"></i>
+            Ongoing Trips
+            <span style="background: var(--bg-card); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.875rem;">{{ ongoing|length }}</span>
+        </h3>
         {% if ongoing %}
-        <div class="trips-grid">
-          {% for trip in ongoing %}
-          <div class="trip-card-v2" data-name="{{ trip.trip_name|lower }}">
-            <div class="trip-status-badge ongoing">Ongoing</div>
-            <div class="trip-card-header">
-              <h3>{{ trip.trip_name }}</h3>
-              <div class="trip-actions">
-                <a href="{{ url_for('itinerary_view', trip_id=trip.id) }}" class="icon-btn" title="View"><i class="fa fa-eye"></i></a>
-                <a href="{{ url_for('edit_trip', trip_id=trip.id) }}" class="icon-btn" title="Edit"><i class="fa fa-edit"></i></a>
-                <a href="{{ url_for('budget', trip_id=trip.id) }}" class="icon-btn" title="Budget"><i class="fa fa-wallet"></i></a>
-              </div>
+        <div class="grid grid-3">
+            {% for trip in ongoing %}
+            <div class="card animate-fadeInUp">
+                <div class="card-image">
+                    <img src="https://source.unsplash.com/800x600/?{{ trip.destination_country or 'travel' }}" 
+                         alt="{{ trip.trip_name }}"
+                         onerror="this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80'">
+                    <div class="card-overlay"></div>
+                    <div class="card-badge" style="background: rgba(34, 197, 94, 0.9);">
+                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                        Ongoing
+                    </div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">{{ trip.trip_name }}</h3>
+                    <p class="card-subtitle">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ trip.destination_country or 'Multiple Destinations' }}
+                    </p>
+                    <div class="card-meta">
+                        {% if trip.start_date and trip.end_date %}
+                        <span><i class="fas fa-calendar"></i> {{ trip.start_date }} - {{ trip.end_date }}</span>
+                        {% endif %}
+                        <span><i class="fas fa-map-pin"></i> {{ trip.stops|length }} stops</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <a href="{{ url_for('trips.itinerary_view', trip_id=trip.id) }}" class="btn btn-primary" style="flex: 1; font-size: 0.875rem; padding: 0.625rem 1rem;">View</a>
+                        <a href="{{ url_for('trips.edit_trip', trip_id=trip.id) }}" class="btn btn-secondary" style="flex: 1; font-size: 0.875rem; padding: 0.625rem 1rem;">Edit</a>
+                    </div>
+                </div>
             </div>
-            <p class="trip-desc">{{ trip.description or 'No description' }}</p>
-            <div class="trip-meta-grid">
-              <div class="meta-item"><i class="fa fa-calendar"></i> {{ trip.start_date }}</div>
-              <div class="meta-item"><i class="fa fa-flag-checkered"></i> {{ trip.end_date }}</div>
-              <div class="meta-item"><i class="fa fa-map-pin"></i> {{ trip.stops|length }} stops</div>
-            </div>
-          </div>
-          {% endfor %}
+            {% endfor %}
         </div>
         {% else %}
-        <div class="empty-state-small"><i class="fa fa-plane"></i><p>No ongoing trips</p></div>
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-plane"></i></div>
+            <p class="empty-state-text">No ongoing trips</p>
+        </div>
         {% endif %}
-      </section>
-
-      <!-- Upcoming Trips -->
-      <section class="trip-section">
-        <div class="section-header-flex">
-          <h2 class="section-title"><i class="fa fa-clock"></i> Upcoming Trips</h2>
-          <span class="count-badge">{{ upcoming|length }}</span>
-        </div>
-        {% if upcoming %}
-        <div class="trips-grid">
-          {% for trip in upcoming %}
-          <div class="trip-card-v2" data-name="{{ trip.trip_name|lower }}">
-            <div class="trip-status-badge upcoming">Upcoming</div>
-            <div class="trip-card-header">
-              <h3>{{ trip.trip_name }}</h3>
-              <div class="trip-actions">
-                <a href="{{ url_for('itinerary_view', trip_id=trip.id) }}" class="icon-btn" title="View"><i class="fa fa-eye"></i></a>
-                <a href="{{ url_for('edit_trip', trip_id=trip.id) }}" class="icon-btn" title="Edit"><i class="fa fa-edit"></i></a>
-                <a href="{{ url_for('budget', trip_id=trip.id) }}" class="icon-btn" title="Budget"><i class="fa fa-wallet"></i></a>
-              </div>
-            </div>
-            <p class="trip-desc">{{ trip.description or 'No description' }}</p>
-            <div class="trip-meta-grid">
-              <div class="meta-item"><i class="fa fa-calendar"></i> {{ trip.start_date }}</div>
-              <div class="meta-item"><i class="fa fa-flag-checkered"></i> {{ trip.end_date }}</div>
-              <div class="meta-item"><i class="fa fa-map-pin"></i> {{ trip.stops|length }} stops</div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state-small"><i class="fa fa-calendar-plus"></i><p>No upcoming trips</p></div>
-        {% endif %}
-      </section>
-
-      <!-- Completed Trips -->
-      <section class="trip-section">
-        <div class="section-header-flex">
-          <h2 class="section-title"><i class="fa fa-check-circle"></i> Completed Trips</h2>
-          <span class="count-badge">{{ completed|length }}</span>
-        </div>
-        {% if completed %}
-        <div class="trips-grid">
-          {% for trip in completed %}
-          <div class="trip-card-v2" data-name="{{ trip.trip_name|lower }}">
-            <div class="trip-status-badge completed">Completed</div>
-            <div class="trip-card-header">
-              <h3>{{ trip.trip_name }}</h3>
-              <div class="trip-actions">
-                <a href="{{ url_for('itinerary_view', trip_id=trip.id) }}" class="icon-btn" title="View"><i class="fa fa-eye"></i></a>
-                <form method="POST" action="{{ url_for('delete_trip', trip_id=trip.id) }}" style="display:inline" onsubmit="return confirm('Delete?')">
-                  <button type="submit" class="icon-btn danger" title="Delete"><i class="fa fa-trash"></i></button>
-                </form>
-              </div>
-            </div>
-            <p class="trip-desc">{{ trip.description or 'No description' }}</p>
-            <div class="trip-meta-grid">
-              <div class="meta-item"><i class="fa fa-calendar"></i> {{ trip.start_date }}</div>
-              <div class="meta-item"><i class="fa fa-flag-checkered"></i> {{ trip.end_date }}</div>
-              <div class="meta-item"><i class="fa fa-map-pin"></i> {{ trip.stops|length }} stops</div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state-small"><i class="fa fa-history"></i><p>No completed trips</p></div>
-        {% endif %}
-      </section>
     </div>
-  </main>
-</div>
+    
+    <!-- Upcoming Trips -->
+    <div style="margin-bottom: 3rem;">
+        <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-clock" style="color: var(--accent-blue);"></i>
+            Upcoming Trips
+            <span style="background: var(--bg-card); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.875rem;">{{ upcoming|length }}</span>
+        </h3>
+        {% if upcoming %}
+        <div class="grid grid-3">
+            {% for trip in upcoming %}
+            <div class="card animate-fadeInUp">
+                <div class="card-image">
+                    <img src="https://source.unsplash.com/800x600/?{{ trip.destination_country or 'travel' }}" 
+                         alt="{{ trip.trip_name }}"
+                         onerror="this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80'">
+                    <div class="card-overlay"></div>
+                    <div class="card-badge" style="background: rgba(59, 130, 246, 0.9);">
+                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                        Upcoming
+                    </div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">{{ trip.trip_name }}</h3>
+                    <p class="card-subtitle">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ trip.destination_country or 'Multiple Destinations' }}
+                    </p>
+                    <div class="card-meta">
+                        {% if trip.start_date and trip.end_date %}
+                        <span><i class="fas fa-calendar"></i> {{ trip.start_date }} - {{ trip.end_date }}</span>
+                        {% endif %}
+                        <span><i class="fas fa-map-pin"></i> {{ trip.stops|length }} stops</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <a href="{{ url_for('trips.itinerary_view', trip_id=trip.id) }}" class="btn btn-primary" style="flex: 1; font-size: 0.875rem; padding: 0.625rem 1rem;">View</a>
+                        <a href="{{ url_for('trips.edit_trip', trip_id=trip.id) }}" class="btn btn-secondary" style="flex: 1; font-size: 0.875rem; padding: 0.625rem 1rem;">Edit</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-calendar-plus"></i></div>
+            <p class="empty-state-text">No upcoming trips</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Completed Trips -->
+    <div>
+        <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-check-circle" style="color: var(--success);"></i>
+            Completed Trips
+            <span style="background: var(--bg-card); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.875rem;">{{ completed|length }}</span>
+        </h3>
+        {% if completed %}
+        <div class="grid grid-3">
+            {% for trip in completed %}
+            <div class="card animate-fadeInUp">
+                <div class="card-image">
+                    <img src="https://source.unsplash.com/800x600/?{{ trip.destination_country or 'travel' }}" 
+                         alt="{{ trip.trip_name }}"
+                         onerror="this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80'">
+                    <div class="card-overlay"></div>
+                    <div class="card-badge" style="background: rgba(148, 163, 184, 0.9);">
+                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                        Completed
+                    </div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">{{ trip.trip_name }}</h3>
+                    <p class="card-subtitle">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ trip.destination_country or 'Multiple Destinations' }}
+                    </p>
+                    <div class="card-meta">
+                        {% if trip.start_date and trip.end_date %}
+                        <span><i class="fas fa-calendar"></i> {{ trip.start_date }} - {{ trip.end_date }}</span>
+                        {% endif %}
+                        <span><i class="fas fa-map-pin"></i> {{ trip.stops|length }} stops</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <a href="{{ url_for('trips.itinerary_view', trip_id=trip.id) }}" class="btn btn-primary" style="flex: 1; font-size: 0.875rem; padding: 0.625rem 1rem;">View</a>
+                        <form method="POST" action="{{ url_for('trips.delete_trip', trip_id=trip.id) }}" style="flex: 1; display: inline;" onsubmit="return confirm('Delete this trip?')">
+                            <button type="submit" class="btn btn-secondary" style="width: 100%; font-size: 0.875rem; padding: 0.625rem 1rem; background: var(--danger);">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-history"></i></div>
+            <p class="empty-state-text">No completed trips</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
 
-<script>
-function searchTrips(query) {
-  const cards = document.querySelectorAll('.trip-card-v2');
-  const q = query.toLowerCase();
-  cards.forEach(card => {
-    const name = card.dataset.name || '';
-    card.style.display = name.includes(q) ? '' : 'none';
-  });
-}
-</script>
 {% endblock %}

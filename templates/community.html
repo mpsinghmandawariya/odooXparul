@@ -1,116 +1,152 @@
-{% extends "base.html" %}
+{% extends "base_premium.html" %}
 {% block title %}Community — Traveloop{% endblock %}
-{% block body %}
-<div class="app-layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
-    <nav class="sidebar-nav">
-      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
-      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
-      <a href="{{ url_for('community') }}" class="nav-item active"><i class="fa fa-users"></i><span>Community</span></a>
-      <a href="{{ url_for('notifications') }}" class="nav-item"><i class="fa fa-bell"></i><span>Notifications</span></a>
-      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
-      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
-    </nav>
-  </aside>
+{% block content %}
 
-  <main class="main-content">
-    <header class="topbar">
-      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
-      <h2 class="topbar-title">Community Feed</h2>
-      <button class="btn btn-primary" onclick="document.getElementById('createPostModal').style.display='flex'"><i class="fa fa-plus"></i> Create Post</button>
-    </header>
+<!-- Community Hero -->
+<section class="section">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Community Feed</h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; margin: 0;">Share your travel experiences</p>
+        </div>
+        <button class="btn btn-primary" onclick="document.getElementById('createPostModal').style.display='flex'">
+            <i class="fas fa-plus"></i>
+            Create Post
+        </button>
+    </div>
+</section>
 
-    <div class="content-wrapper">
-      <div class="community-feed">
+<!-- Community Feed -->
+<section class="section">
+    {% if posts %}
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
         {% for post in posts %}
-        <div class="post-card">
-          <div class="post-header">
-            <div class="post-author">
-              <div class="author-avatar">{{ post.user.first_name[0] }}{{ post.user.last_name[0] }}</div>
-              <div>
-                <h4>{{ post.user.first_name }} {{ post.user.last_name }}</h4>
-                <span class="post-time">{{ post.created_at.strftime('%b %d, %Y') }}</span>
-              </div>
+        <div class="glass-card">
+            <!-- Post Header -->
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.1rem;">
+                    {{ post.user.first_name[0] }}{{ post.user.last_name[0] }}
+                </div>
+                <div>
+                    <h4 style="margin: 0; font-size: 1rem;">{{ post.user.first_name }} {{ post.user.last_name }}</h4>
+                    <span style="color: var(--text-muted); font-size: 0.875rem;">{{ post.created_at.strftime('%b %d, %Y') }}</span>
+                </div>
             </div>
-          </div>
-          <h3 class="post-title">{{ post.title }}</h3>
-          <p class="post-content">{{ post.post_content }}</p>
-          {% if post.image_path %}
-          <img src="{{ url_for('static', filename='uploads/' + post.image_path) }}" class="post-image" alt="Post image"/>
-          {% endif %}
-          <div class="post-actions">
-            <button class="action-btn" onclick="likePost({{ post.id }}, this)">
-              <i class="fa fa-heart"></i> <span class="like-count">{{ post.likes_count }}</span>
-            </button>
-            <button class="action-btn" onclick="toggleComments({{ post.id }})">
-              <i class="fa fa-comment"></i> {{ post.comments|length }}
-            </button>
-          </div>
-          <div class="comments-section" id="comments-{{ post.id }}" style="display:none">
-            {% for comment in post.comments %}
-            <div class="comment">
-              <strong>{{ comment.user.first_name }}:</strong> {{ comment.comment_text }}
+            
+            <!-- Post Content -->
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">{{ post.title }}</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.7;">{{ post.post_content }}</p>
+            
+            {% if post.image_path %}
+            <img src="{{ url_for('static', filename='uploads/' + post.image_path) }}" 
+                 style="width: 100%; height: 400px; object-fit: cover; border-radius: var(--radius-lg); margin-bottom: 1.5rem;" 
+                 alt="Post image"/>
+            {% endif %}
+            
+            <!-- Post Actions -->
+            <div style="display: flex; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                <button class="btn btn-ghost" onclick="likePost({{ post.id }}, this)" style="padding: 0.5rem 1rem;">
+                    <i class="fas fa-heart"></i>
+                    <span class="like-count">{{ post.likes_count }}</span>
+                </button>
+                <button class="btn btn-ghost" onclick="toggleComments({{ post.id }})" style="padding: 0.5rem 1rem;">
+                    <i class="fas fa-comment"></i>
+                    {{ post.comments|length }}
+                </button>
             </div>
-            {% endfor %}
-            <form method="POST" action="{{ url_for('add_comment', post_id=post.id) }}" class="comment-form">
-              <input type="text" name="comment" placeholder="Add a comment..." required/>
-              <button type="submit" class="btn btn-sm btn-primary">Post</button>
-            </form>
-          </div>
+            
+            <!-- Comments Section -->
+            <div id="comments-{{ post.id }}" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--glass-border);">
+                {% for comment in post.comments %}
+                <div style="padding: 1rem; background: var(--bg-primary); border-radius: var(--radius-md); margin-bottom: 1rem;">
+                    <strong style="color: var(--text-primary);">{{ comment.user.first_name }}:</strong>
+                    <span style="color: var(--text-secondary);">{{ comment.comment_text }}</span>
+                </div>
+                {% endfor %}
+                
+                <form method="POST" action="{{ url_for('community.add_comment', post_id=post.id) }}" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <input type="text" name="comment" placeholder="Add a comment..." required 
+                           style="flex: 1; padding: 0.875rem 1.25rem; background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); color: var(--text-primary); font-size: 0.95rem;"/>
+                    <button type="submit" class="btn btn-primary">Post</button>
+                </form>
+            </div>
         </div>
         {% endfor %}
-      </div>
     </div>
-  </main>
-</div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <h3 class="empty-state-title">No posts yet</h3>
+        <p class="empty-state-text">Be the first to share your travel experience!</p>
+        <button class="btn btn-primary" onclick="document.getElementById('createPostModal').style.display='flex'">
+            <i class="fas fa-plus"></i>
+            Create First Post
+        </button>
+    </div>
+    {% endif %}
+</section>
 
-<div id="createPostModal" class="modal">
-  <div class="modal-content">
-    <span class="modal-close" onclick="document.getElementById('createPostModal').style.display='none'">&times;</span>
-    <h2>Create Post</h2>
-    <form method="POST" action="{{ url_for('create_post') }}" enctype="multipart/form-data">
-      <div class="form-group">
-        <label>Title</label>
-        <input type="text" name="title" required/>
-      </div>
-      <div class="form-group">
-        <label>Content</label>
-        <textarea name="content" rows="4" required></textarea>
-      </div>
-      <div class="form-group">
-        <label>Link to Trip (optional)</label>
-        <select name="trip_id">
-          <option value="">None</option>
-          {% for trip in current_user.trips %}
-          <option value="{{ trip.id }}">{{ trip.trip_name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Image (optional)</label>
-        <input type="file" name="image" accept="image/*"/>
-      </div>
-      <button type="submit" class="btn btn-primary btn-full">Post</button>
-    </form>
-  </div>
+<!-- Create Post Modal -->
+<div id="createPostModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-secondary); border-radius: var(--radius-xl); padding: 2rem; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-xl);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2 style="margin: 0;">Create Post</h2>
+            <button onclick="document.getElementById('createPostModal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('community.create_post') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" name="title" class="form-input" required/>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Content</label>
+                <textarea name="content" class="form-textarea" rows="4" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Link to Trip (optional)</label>
+                <select name="trip_id" class="form-select">
+                    <option value="">None</option>
+                    {% for trip in current_user.trips %}
+                    <option value="{{ trip.id }}">{{ trip.trip_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Image (optional)</label>
+                <input type="file" name="image" accept="image/*" class="form-input"/>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Post</button>
+        </form>
+    </div>
 </div>
 
 <script>
 function likePost(postId, btn) {
-  fetch(`/like-post/${postId}`, { method: 'POST' })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        btn.querySelector('.like-count').textContent = data.likes_count;
-        btn.classList.toggle('liked', data.liked);
-      }
-    });
+    fetch(`/like-post/${postId}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                btn.querySelector('.like-count').textContent = data.likes_count;
+                if (data.liked) {
+                    btn.style.color = '#EF4444';
+                } else {
+                    btn.style.color = '';
+                }
+            }
+        });
 }
 
 function toggleComments(postId) {
-  const section = document.getElementById(`comments-${postId}`);
-  section.style.display = section.style.display === 'none' ? 'block' : 'none';
+    const section = document.getElementById(`comments-${postId}`);
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
 }
 </script>
+
 {% endblock %}
