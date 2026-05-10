@@ -158,3 +158,32 @@ class Collaboration(db.Model):
     role = db.Column(db.String(20), default='viewer')
     invited_at = db.Column(db.DateTime, default=datetime.utcnow)
     collaborator = db.relationship('User', backref='collaborations')
+
+
+# Phase 4 Models
+
+class AIRecommendation(db.Model):
+    __tablename__ = 'ai_recommendations'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    recommendation_type = db.Column(db.String(50), nullable=False)
+    recommendation_data = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class WeatherCache(db.Model):
+    __tablename__ = 'weather_cache'
+    id = db.Column(db.Integer, primary_key=True)
+    city_name = db.Column(db.String(100), nullable=False)
+    temperature = db.Column(db.Float)
+    weather_condition = db.Column(db.String(50))
+    forecast_data = db.Column(db.Text)
+    cached_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Achievement(db.Model):
+    __tablename__ = 'achievements'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    badge_name = db.Column(db.String(100), nullable=False)
+    badge_description = db.Column(db.String(256))
+    unlocked_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='achievements')
