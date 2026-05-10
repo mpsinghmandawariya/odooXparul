@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}{{ trip.trip_name }} — Traveloop{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('create_trip') }}" class="nav-item"><i class="fa fa-plus-circle"></i><span>New Trip</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</div>
+      <div class="user-info">
+        <span class="user-name">{{ current_user.first_name }} {{ current_user.last_name }}</span>
+        <span class="user-email">{{ current_user.email }}</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">{{ trip.trip_name }}</h2>
+      <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn btn-ghost btn-sm"><i class="fa fa-edit"></i> Edit</a>
+    </header>
+
+    <div class="view-page">
+      <!-- Trip Summary -->
+      <div class="trip-summary-card">
+        <div class="summary-info">
+          <h1>{{ trip.trip_name }}</h1>
+          <p class="summary-desc">{{ trip.description or 'No description.' }}</p>
+          <div class="summary-meta">
+            <span><i class="fa fa-calendar-alt"></i> {{ trip.start_date or 'TBD' }}</span>
+            <span><i class="fa fa-arrow-right"></i></span>
+            <span><i class="fa fa-calendar-check"></i> {{ trip.end_date or 'TBD' }}</span>
+            <span class="badge"><i class="fa fa-map-pin"></i> {{ trip.stops|length }} Stop{{ 's' if trip.stops|length != 1 }}</span>
+          </div>
+        </div>
+        <div class="summary-total">
+          {% set total = namespace(val=0) %}
+          {% for stop in trip.stops %}
+            {% set total.val = total.val + stop.budget %}
+            {% for act in stop.activities %}
+              {% set total.val = total.val + act.activity_cost %}
+            {% endfor %}
+          {% endfor %}
+          <span class="total-label">Total Budget</span>
+          <span class="total-amount">${{ "%.2f"|format(total.val) }}</span>
+        </div>
+      </div>
+
+      <!-- Itinerary Timeline -->
+      {% if trip.stops %}
+      <div class="timeline">
+        {% for stop in trip.stops %}
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <div class="timeline-header">
+              <div>
+                <h3 class="stop-title">{{ stop.section_title }}</h3>
+                <span class="stop-city"><i class="fa fa-map-marker-alt"></i> {{ stop.city_name or 'Location TBD' }}</span>
+              </div>
+              <div class="stop-meta-right">
+                {% if stop.start_date %}
+                <span class="date-badge">{{ stop.start_date }}{% if stop.end_date %} → {{ stop.end_date }}{% endif %}</span>
+                {% endif %}
+                <span class="budget-badge"><i class="fa fa-wallet"></i> ${{ "%.2f"|format(stop.budget) }}</span>
+              </div>
+            </div>
+
+            {% if stop.activities %}
+            <div class="activities-list">
+              <h4><i class="fa fa-list-ul"></i> Activities</h4>
+              <table class="act-table">
+                <thead>
+                  <tr><th>Activity</th><th>Description</th><th>Cost</th></tr>
+                </thead>
+                <tbody>
+                  {% for act in stop.activities %}
+                  <tr>
+                    <td><i class="fa fa-circle-dot"></i> {{ act.activity_name }}</td>
+                    <td class="muted">{{ act.activity_description or '—' }}</td>
+                    <td class="cost">${{ "%.2f"|format(act.activity_cost) }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <p class="no-activities">No activities added for this stop.</p>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="fa fa-route"></i>
+        <h3>No itinerary yet</h3>
+        <p>Start building your trip plan!</p>
+        <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn btn-primary">Build Itinerary</a>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

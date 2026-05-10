@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Build Itinerary — Traveloop{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('create_trip') }}" class="nav-item"><i class="fa fa-plus-circle"></i><span>New Trip</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</div>
+      <div class="user-info">
+        <span class="user-name">{{ current_user.first_name }} {{ current_user.last_name }}</span>
+        <span class="user-email">{{ current_user.email }}</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Build Itinerary — <span class="accent">{{ trip.trip_name }}</span></h2>
+    </header>
+
+    <div class="form-page">
+      <form method="POST" id="itineraryForm">
+        <div id="sectionsContainer"></div>
+
+        <button type="button" class="btn btn-ghost btn-full add-section-btn" onclick="addSection()">
+          <i class="fa fa-plus"></i> Add Another Stop / Section
+        </button>
+
+        <div class="form-actions" style="margin-top:2rem">
+          <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">Cancel</a>
+          <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Itinerary</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let sectionCount = 0;
+
+function addSection() {
+  const idx = sectionCount++;
+  const container = document.getElementById('sectionsContainer');
+  const div = document.createElement('div');
+  div.className = 'itinerary-section';
+  div.id = `section-${idx}`;
+  div.innerHTML = `
+    <div class="section-header">
+      <div class="section-num">${idx + 1}</div>
+      <h3>Stop / Section ${idx + 1}</h3>
+      <button type="button" class="icon-btn danger" onclick="removeSection(${idx})" title="Remove"><i class="fa fa-trash"></i></button>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label>Section Title</label>
+        <div class="input-icon"><i class="fa fa-tag"></i>
+          <input type="text" name="section_title[]" placeholder="e.g. Day 1 - Arrival" required/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>City</label>
+        <div class="input-icon"><i class="fa fa-city"></i>
+          <input type="text" name="city_name[]" placeholder="e.g. Paris"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Start Date</label>
+        <div class="input-icon"><i class="fa fa-calendar-alt"></i>
+          <input type="date" name="start_date[]"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>End Date</label>
+        <div class="input-icon"><i class="fa fa-calendar-check"></i>
+          <input type="date" name="end_date[]"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Budget ($)</label>
+        <div class="input-icon"><i class="fa fa-dollar-sign"></i>
+          <input type="number" name="budget[]" placeholder="0.00" min="0" step="0.01"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="activities-block" id="activities-${idx}">
+      <h4 class="activities-title"><i class="fa fa-list-ul"></i> Activities</h4>
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="addActivity(${idx})">
+      <i class="fa fa-plus"></i> Add Activity
+    </button>
+  `;
+  container.appendChild(div);
+  div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function removeSection(idx) {
+  const el = document.getElementById(`section-${idx}`);
+  if (el) el.remove();
+}
+
+function addActivity(sectionIdx) {
+  const block = document.getElementById(`activities-${sectionIdx}`);
+  const actIdx = block.querySelectorAll('.activity-row').length;
+  const row = document.createElement('div');
+  row.className = 'activity-row';
+  row.innerHTML = `
+    <input type="hidden" name="activity_stop[]" value="${sectionIdx}"/>
+    <div class="form-grid-3">
+      <div class="form-group">
+        <label>Activity Name</label>
+        <input type="text" name="activity_name[]" placeholder="e.g. Eiffel Tower Visit"/>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" name="activity_description[]" placeholder="Brief description"/>
+      </div>
+      <div class="form-group">
+        <label>Cost ($)</label>
+        <input type="number" name="activity_cost[]" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+    </div>
+    <button type="button" class="icon-btn danger remove-act" onclick="this.closest('.activity-row').remove()" title="Remove"><i class="fa fa-times"></i></button>
+  `;
+  block.appendChild(row);
+}
+
+// Start with one section
+addSection();
+</script>
+{% endblock %}

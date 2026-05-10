@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Traveloop{% endblock %}
+{% block body %}
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa fa-paper-plane"></i>
+      <span>Traveloop</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item active"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('create_trip') }}" class="nav-item"><i class="fa fa-plus-circle"></i><span>New Trip</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</div>
+      <div class="user-info">
+        <span class="user-name">{{ current_user.first_name }} {{ current_user.last_name }}</span>
+        <span class="user-email">{{ current_user.email }}</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <div class="topbar-search">
+        <i class="fa fa-search"></i>
+        <input type="text" placeholder="Search trips..." id="searchInput" oninput="filterTrips(this.value)"/>
+      </div>
+      <a href="{{ url_for('create_trip') }}" class="btn btn-primary"><i class="fa fa-plus"></i> Plan a Trip</a>
+    </header>
+
+    <!-- Banner -->
+    <div class="dashboard-banner">
+      <div class="banner-text">
+        <h1>Hello, {{ current_user.first_name }}! <span>✈️</span></h1>
+        <p>Where are you heading next?</p>
+      </div>
+      <div class="banner-stats">
+        <div class="stat-card"><span class="stat-num">{{ trips|length }}</span><span class="stat-label">Total Trips</span></div>
+        <div class="stat-card"><span class="stat-num">{{ trips|selectattr('stops')|list|length }}</span><span class="stat-label">With Itinerary</span></div>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <button class="filter-btn active" onclick="filterByStatus('all', this)">All Trips</button>
+      <button class="filter-btn" onclick="filterByStatus('upcoming', this)">Upcoming</button>
+      <button class="filter-btn" onclick="filterByStatus('past', this)">Past</button>
+    </div>
+
+    <!-- Trips Grid -->
+    <section class="section">
+      <h2 class="section-title">Your Trips</h2>
+      {% if trips %}
+      <div class="trips-grid" id="tripsGrid">
+        {% for trip in trips %}
+        <div class="trip-card" data-name="{{ trip.trip_name|lower }}" data-start="{{ trip.start_date }}">
+          <div class="trip-card-header">
+            <div class="trip-icon"><i class="fa fa-map-marked-alt"></i></div>
+            <div class="trip-actions">
+              <a href="{{ url_for('itinerary_view', trip_id=trip.id) }}" class="icon-btn" title="View"><i class="fa fa-eye"></i></a>
+              <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="icon-btn" title="Edit"><i class="fa fa-edit"></i></a>
+              <form method="POST" action="{{ url_for('delete_trip', trip_id=trip.id) }}" style="display:inline" onsubmit="return confirm('Delete this trip?')">
+                <button type="submit" class="icon-btn danger" title="Delete"><i class="fa fa-trash"></i></button>
+              </form>
+            </div>
+          </div>
+          <h3 class="trip-name">{{ trip.trip_name }}</h3>
+          <p class="trip-desc">{{ trip.description or 'No description added.' }}</p>
+          <div class="trip-meta">
+            <span><i class="fa fa-calendar"></i> {{ trip.start_date or 'TBD' }}</span>
+            <span><i class="fa fa-flag-checkered"></i> {{ trip.end_date or 'TBD' }}</span>
+          </div>
+          <div class="trip-footer">
+            <span class="stop-count"><i class="fa fa-map-pin"></i> {{ trip.stops|length }} stop{{ 's' if trip.stops|length != 1 }}</span>
+            <a href="{{ url_for('itinerary_view', trip_id=trip.id) }}" class="btn btn-sm">View</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="fa fa-suitcase-rolling"></i>
+        <h3>No trips yet</h3>
+        <p>Start planning your first adventure!</p>
+        <a href="{{ url_for('create_trip') }}" class="btn btn-primary">Plan a Trip</a>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- Destinations Inspiration -->
+    <section class="section">
+      <h2 class="section-title">Top Destinations</h2>
+      <div class="destinations-grid">
+        {% for dest in [('Paris', 'fa-eiffel-tower', '#667eea'), ('Tokyo', 'fa-torii-gate', '#f093fb'), ('New York', 'fa-city', '#4facfe'), ('Bali', 'fa-umbrella-beach', '#43e97b'), ('Dubai', 'fa-mosque', '#fa709a'), ('London', 'fa-landmark', '#a18cd1')] %}
+        <div class="dest-card" style="--accent: {{ dest[2] }}">
+          <i class="fa {{ dest[1] }}"></i>
+          <span>{{ dest[0] }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

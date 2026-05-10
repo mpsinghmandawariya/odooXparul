@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Create Trip — Traveloop{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('create_trip') }}" class="nav-item active"><i class="fa fa-plus-circle"></i><span>New Trip</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</div>
+      <div class="user-info">
+        <span class="user-name">{{ current_user.first_name }} {{ current_user.last_name }}</span>
+        <span class="user-email">{{ current_user.email }}</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Create New Trip</h2>
+    </header>
+
+    <div class="form-page">
+      <div class="form-card">
+        <div class="form-card-header">
+          <div class="form-card-icon"><i class="fa fa-map-marked-alt"></i></div>
+          <div>
+            <h2>Trip Details</h2>
+            <p>Fill in the basics — you can add the itinerary next.</p>
+          </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('create_trip') }}" novalidate>
+          <div class="form-group">
+            <label>Trip Name <span class="required">*</span></label>
+            <div class="input-icon">
+              <i class="fa fa-suitcase"></i>
+              <input type="text" name="trip_name" placeholder="e.g. Europe Summer 2025" required/>
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Start Date</label>
+              <div class="input-icon">
+                <i class="fa fa-calendar-alt"></i>
+                <input type="date" name="start_date"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>End Date</label>
+              <div class="input-icon">
+                <i class="fa fa-calendar-check"></i>
+                <input type="date" name="end_date"/>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="4" placeholder="What's this trip about? Any special plans?"></textarea>
+          </div>
+          <div class="form-actions">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-arrow-right"></i> Continue to Itinerary</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
