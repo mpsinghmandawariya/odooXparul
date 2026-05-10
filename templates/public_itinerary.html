@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ trip.trip_name }} — Public Itinerary</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+  <div class="public-page">
+    <header class="public-header">
+      <h1><i class="fa fa-paper-plane"></i> Traveloop</h1>
+      <a href="{{ url_for('login') }}" class="btn btn-primary">Sign In</a>
+    </header>
+
+    <div class="public-content">
+      <div class="trip-summary-card">
+        <h1>{{ trip.trip_name }}</h1>
+        <p>{{ trip.description or 'No description' }}</p>
+        <div class="summary-meta">
+          <span><i class="fa fa-calendar"></i> {{ trip.start_date or 'TBD' }}</span>
+          <span><i class="fa fa-arrow-right"></i></span>
+          <span><i class="fa fa-calendar-check"></i> {{ trip.end_date or 'TBD' }}</span>
+          <span class="badge"><i class="fa fa-map-pin"></i> {{ trip.stops|length }} stops</span>
+        </div>
+      </div>
+
+      <div class="timeline">
+        {% for stop in trip.stops %}
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <h3>{{ stop.section_title }}</h3>
+            <p><i class="fa fa-map-marker-alt"></i> {{ stop.city_name or 'Location TBD' }}</p>
+            {% if stop.activities %}
+            <ul style="margin-top:1rem">
+              {% for act in stop.activities %}
+              <li>{{ act.activity_name }} — ${{ "%.2f"|format(act.activity_cost) }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Collaboration — {{ trip.trip_name }}{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Collaboration — {{ trip.trip_name }}</h2>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="add-note-card">
+        <h3>Invite Collaborator</h3>
+        <form method="POST">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <input type="email" name="email" placeholder="Collaborator email" required/>
+            </div>
+            <div class="form-group">
+              <select name="role" required>
+                <option value="viewer">Viewer</option>
+                <option value="editor">Editor</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fa fa-user-plus"></i> Invite</button>
+        </form>
+      </div>
+
+      <h3>Current Collaborators</h3>
+      <div class="collaborators-list">
+        {% for collab in collaborators %}
+        <div class="collaborator-item">
+          <div class="collaborator-info">
+            <div class="collaborator-avatar">{{ collab.collaborator.first_name[0] }}{{ collab.collaborator.last_name[0] }}</div>
+            <div>
+              <h4>{{ collab.collaborator.first_name }} {{ collab.collaborator.last_name }}</h4>
+              <p style="font-size:12px;color:var(--text-dim)">{{ collab.collaborator.email }}</p>
+            </div>
+            <span class="role-badge">{{ collab.role }}</span>
+          </div>
+          <form method="POST" action="{{ url_for('remove_collaborator', collab_id=collab.id) }}" style="display:inline">
+            <button type="submit" class="icon-btn danger"><i class="fa fa-times"></i></button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if not collaborators %}
+      <div class="empty-state">
+        <i class="fa fa-user-friends"></i>
+        <h3>No collaborators yet</h3>
+        <p>Invite others to plan together</p>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

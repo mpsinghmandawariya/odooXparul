@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Community — Traveloop{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('community') }}" class="nav-item active"><i class="fa fa-users"></i><span>Community</span></a>
+      <a href="{{ url_for('notifications') }}" class="nav-item"><i class="fa fa-bell"></i><span>Notifications</span></a>
+      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Community Feed</h2>
+      <button class="btn btn-primary" onclick="document.getElementById('createPostModal').style.display='flex'"><i class="fa fa-plus"></i> Create Post</button>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="community-feed">
+        {% for post in posts %}
+        <div class="post-card">
+          <div class="post-header">
+            <div class="post-author">
+              <div class="author-avatar">{{ post.user.first_name[0] }}{{ post.user.last_name[0] }}</div>
+              <div>
+                <h4>{{ post.user.first_name }} {{ post.user.last_name }}</h4>
+                <span class="post-time">{{ post.created_at.strftime('%b %d, %Y') }}</span>
+              </div>
+            </div>
+          </div>
+          <h3 class="post-title">{{ post.title }}</h3>
+          <p class="post-content">{{ post.post_content }}</p>
+          {% if post.image_path %}
+          <img src="{{ url_for('static', filename='uploads/' + post.image_path) }}" class="post-image" alt="Post image"/>
+          {% endif %}
+          <div class="post-actions">
+            <button class="action-btn" onclick="likePost({{ post.id }}, this)">
+              <i class="fa fa-heart"></i> <span class="like-count">{{ post.likes_count }}</span>
+            </button>
+            <button class="action-btn" onclick="toggleComments({{ post.id }})">
+              <i class="fa fa-comment"></i> {{ post.comments|length }}
+            </button>
+          </div>
+          <div class="comments-section" id="comments-{{ post.id }}" style="display:none">
+            {% for comment in post.comments %}
+            <div class="comment">
+              <strong>{{ comment.user.first_name }}:</strong> {{ comment.comment_text }}
+            </div>
+            {% endfor %}
+            <form method="POST" action="{{ url_for('add_comment', post_id=post.id) }}" class="comment-form">
+              <input type="text" name="comment" placeholder="Add a comment..." required/>
+              <button type="submit" class="btn btn-sm btn-primary">Post</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="createPostModal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" onclick="document.getElementById('createPostModal').style.display='none'">&times;</span>
+    <h2>Create Post</h2>
+    <form method="POST" action="{{ url_for('create_post') }}" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" name="title" required/>
+      </div>
+      <div class="form-group">
+        <label>Content</label>
+        <textarea name="content" rows="4" required></textarea>
+      </div>
+      <div class="form-group">
+        <label>Link to Trip (optional)</label>
+        <select name="trip_id">
+          <option value="">None</option>
+          {% for trip in current_user.trips %}
+          <option value="{{ trip.id }}">{{ trip.trip_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Image (optional)</label>
+        <input type="file" name="image" accept="image/*"/>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Post</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function likePost(postId, btn) {
+  fetch(`/like-post/${postId}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        btn.querySelector('.like-count').textContent = data.likes_count;
+        btn.classList.toggle('liked', data.liked);
+      }
+    });
+}
+
+function toggleComments(postId) {
+  const section = document.getElementById(`comments-${postId}`);
+  section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

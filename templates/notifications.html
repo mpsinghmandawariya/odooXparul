@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Notifications — Traveloop{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('community') }}" class="nav-item"><i class="fa fa-users"></i><span>Community</span></a>
+      <a href="{{ url_for('notifications') }}" class="nav-item active"><i class="fa fa-bell"></i><span>Notifications</span></a>
+      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Notifications</h2>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="notification-list">
+        {% for notif in notifications %}
+        <div class="notification-item {% if not notif.is_read %}unread{% endif %}">
+          <div class="notification-content">
+            <p class="notification-text">{{ notif.notification_text }}</p>
+            <span class="notification-time">{{ notif.created_at.strftime('%b %d, %Y at %I:%M %p') }}</span>
+          </div>
+          <div class="notification-actions">
+            {% if not notif.is_read %}
+            <button class="icon-btn" onclick="markRead({{ notif.id }})" title="Mark as read"><i class="fa fa-check"></i></button>
+            {% endif %}
+            <button class="icon-btn danger" onclick="deleteNotif({{ notif.id }})" title="Delete"><i class="fa fa-trash"></i></button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if not notifications %}
+      <div class="empty-state">
+        <i class="fa fa-bell-slash"></i>
+        <h3>No notifications</h3>
+        <p>You're all caught up!</p>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+
+<script>
+function markRead(id) {
+  fetch(`/mark-notification-read/${id}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => { if (data.success) location.reload(); });
+}
+
+function deleteNotif(id) {
+  if (confirm('Delete this notification?')) {
+    fetch(`/delete-notification/${id}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => { if (data.success) location.reload(); });
+  }
+}
+</script>
+{% endblock %}

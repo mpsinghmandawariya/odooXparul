@@ -77,3 +77,84 @@ class SavedDestination(db.Model):
     cost_index = db.Column(db.Float)
     popularity = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# Phase 3 Models
+
+class PackingItem(db.Model):
+    __tablename__ = 'packing_items'
+    id = db.Column(db.Integer, primary_key=True)
+    trip_id = db.Column(db.Integer, db.ForeignKey('trips.id'), nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    item_name = db.Column(db.String(100), nullable=False)
+    is_packed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class CommunityPost(db.Model):
+    __tablename__ = 'community_posts'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    post_content = db.Column(db.Text, nullable=False)
+    image_path = db.Column(db.String(256))
+    trip_id = db.Column(db.Integer, db.ForeignKey('trips.id'))
+    likes_count = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='posts')
+    comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan')
+    likes = db.relationship('PostLike', backref='post', lazy=True, cascade='all, delete-orphan')
+
+class Comment(db.Model):
+    __tablename__ = 'comments'
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('community_posts.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    comment_text = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='comments')
+
+class PostLike(db.Model):
+    __tablename__ = 'post_likes'
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('community_posts.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class TripNote(db.Model):
+    __tablename__ = 'trip_notes'
+    id = db.Column(db.Integer, primary_key=True)
+    trip_id = db.Column(db.Integer, db.ForeignKey('trips.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    note_title = db.Column(db.String(200))
+    note_content = db.Column(db.Text, nullable=False)
+    note_date = db.Column(db.String(20))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    notification_text = db.Column(db.String(256), nullable=False)
+    notification_type = db.Column(db.String(50))
+    is_read = db.Column(db.Boolean, default=False)
+    link = db.Column(db.String(256))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Invoice(db.Model):
+    __tablename__ = 'invoices'
+    id = db.Column(db.Integer, primary_key=True)
+    trip_id = db.Column(db.Integer, db.ForeignKey('trips.id'), nullable=False)
+    invoice_number = db.Column(db.String(50), unique=True)
+    total_amount = db.Column(db.Float, nullable=False)
+    payment_status = db.Column(db.String(20), default='unpaid')
+    generated_date = db.Column(db.DateTime, default=datetime.utcnow)
+    trip = db.relationship('Trip', backref='invoices')
+
+class Collaboration(db.Model):
+    __tablename__ = 'collaborations'
+    id = db.Column(db.Integer, primary_key=True)
+    trip_id = db.Column(db.Integer, db.ForeignKey('trips.id'), nullable=False)
+    collaborator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    role = db.Column(db.String(20), default='viewer')
+    invited_at = db.Column(db.DateTime, default=datetime.utcnow)
+    collaborator = db.relationship('User', backref='collaborations')

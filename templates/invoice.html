@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Invoice — {{ trip.trip_name }}{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Invoice</h2>
+      <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa fa-print"></i> Print</button>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="invoice-container">
+        <div class="invoice-header">
+          <div>
+            <h1>INVOICE</h1>
+            <p class="invoice-number">{{ invoice.invoice_number }}</p>
+            <p>Date: {{ invoice.generated_date.strftime('%b %d, %Y') }}</p>
+          </div>
+          <div>
+            <h3>{{ current_user.first_name }} {{ current_user.last_name }}</h3>
+            <p>{{ current_user.email }}</p>
+            <p>{{ current_user.city }}, {{ current_user.country }}</p>
+          </div>
+        </div>
+
+        <h2>Trip: {{ trip.trip_name }}</h2>
+        <p>{{ trip.start_date }} to {{ trip.end_date }}</p>
+
+        <table class="invoice-table">
+          <thead>
+            <tr><th>Category</th><th>Description</th><th>Date</th><th>Amount</th></tr>
+          </thead>
+          <tbody>
+            {% for exp in trip.expenses %}
+            <tr>
+              <td>{{ exp.category }}</td>
+              <td>{{ exp.description or '—' }}</td>
+              <td>{{ exp.expense_date or '—' }}</td>
+              <td>${{ "%.2f"|format(exp.amount) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="invoice-total">
+          Total: ${{ "%.2f"|format(invoice.total_amount) }}
+        </div>
+
+        <div style="margin-top:1.5rem">
+          <span class="payment-status {{ invoice.payment_status }}">{{ invoice.payment_status.upper() }}</span>
+          <button class="btn btn-primary btn-sm" onclick="togglePayment({{ invoice.id }})" style="margin-left:1rem">
+            Toggle Payment Status
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+function togglePayment(id) {
+  fetch(`/toggle-payment/${id}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => { if (data.success) location.reload(); });
+}
+</script>
+{% endblock %}

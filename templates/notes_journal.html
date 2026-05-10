@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Trip Notes — {{ trip.trip_name }}{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('community') }}" class="nav-item"><i class="fa fa-users"></i><span>Community</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Trip Notes — {{ trip.trip_name }}</h2>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="add-note-card">
+        <h3>Add Note</h3>
+        <form method="POST">
+          <div class="form-group">
+            <input type="text" name="title" placeholder="Note title" required/>
+          </div>
+          <div class="form-group">
+            <textarea name="content" rows="4" placeholder="Note content..." required></textarea>
+          </div>
+          <div class="form-group">
+            <input type="date" name="date"/>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Note</button>
+        </form>
+      </div>
+
+      <div class="notes-timeline">
+        {% for note in notes %}
+        <div class="note-card">
+          <div class="note-header">
+            <h4>{{ note.note_title }}</h4>
+            <form method="POST" action="{{ url_for('delete_note', note_id=note.id) }}" style="display:inline">
+              <button type="submit" class="icon-btn danger"><i class="fa fa-trash"></i></button>
+            </form>
+          </div>
+          <p>{{ note.note_content }}</p>
+          <span class="note-date">{{ note.note_date or note.created_at.strftime('%b %d, %Y') }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

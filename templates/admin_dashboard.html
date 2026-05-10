@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — Traveloop{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('admin_dashboard') }}" class="nav-item active"><i class="fa fa-shield-alt"></i><span>Admin</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Admin Dashboard</h2>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="admin-stats">
+        <div class="admin-stat-card">
+          <i class="fa fa-users fa-2x" style="color:var(--accent);margin-bottom:0.5rem"></i>
+          <div class="admin-stat-value">{{ total_users }}</div>
+          <div class="admin-stat-label">Total Users</div>
+        </div>
+        <div class="admin-stat-card">
+          <i class="fa fa-suitcase fa-2x" style="color:var(--success);margin-bottom:0.5rem"></i>
+          <div class="admin-stat-value">{{ total_trips }}</div>
+          <div class="admin-stat-label">Total Trips</div>
+        </div>
+        <div class="admin-stat-card">
+          <i class="fa fa-comments fa-2x" style="color:var(--warning);margin-bottom:0.5rem"></i>
+          <div class="admin-stat-value">{{ total_posts }}</div>
+          <div class="admin-stat-label">Community Posts</div>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h3>Recent Users</h3>
+        <table class="admin-table">
+          <thead>
+            <tr><th>Name</th><th>Email</th><th>Joined</th><th>Trips</th></tr>
+          </thead>
+          <tbody>
+            {% for user in recent_users %}
+            <tr>
+              <td>{{ user.first_name }} {{ user.last_name }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+              <td>{{ user.trips|length }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="admin-section" style="margin-top:2rem">
+        <h3>Popular Destinations</h3>
+        <table class="admin-table">
+          <thead>
+            <tr><th>City</th><th>Visits</th></tr>
+          </thead>
+          <tbody>
+            {% for city, count in popular_cities %}
+            <tr>
+              <td>{{ city }}</td>
+              <td><span class="badge">{{ count }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<style>
+.admin-section {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.5rem;
+}
+.admin-section h3 { margin-bottom: 1rem; }
+</style>
+{% endblock %}

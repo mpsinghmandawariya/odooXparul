@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Packing Checklist — {{ trip.trip_name }}{% endblock %}
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fa fa-paper-plane"></i><span>Traveloop</span></div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa fa-home"></i><span>Dashboard</span></a>
+      <a href="{{ url_for('my_trips') }}" class="nav-item"><i class="fa fa-suitcase"></i><span>My Trips</span></a>
+      <a href="{{ url_for('community') }}" class="nav-item"><i class="fa fa-users"></i><span>Community</span></a>
+      <a href="{{ url_for('notifications') }}" class="nav-item"><i class="fa fa-bell"></i><span>Notifications</span></a>
+      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa fa-user-circle"></i><span>Profile</span></a>
+      <a href="{{ url_for('logout') }}" class="nav-item nav-logout"><i class="fa fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="topbar-title">Packing Checklist — {{ trip.trip_name }}</h2>
+      <a href="{{ url_for('itinerary_view', trip_id=trip.id) }}" class="btn btn-ghost btn-sm"><i class="fa fa-arrow-left"></i> Back to Trip</a>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="packing-progress-card">
+        <div class="progress-info">
+          <h3>Packing Progress</h3>
+          <p>{{ packed }} of {{ total }} items packed</p>
+        </div>
+        <div class="progress-circle">
+          <svg viewBox="0 0 36 36">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#334155" stroke-width="3"/>
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#3b82f6" stroke-width="3" stroke-dasharray="{{ progress }}, 100"/>
+          </svg>
+          <span class="progress-text">{{ progress }}%</span>
+        </div>
+      </div>
+
+      <div class="add-item-card">
+        <h3>Add Packing Item</h3>
+        <form id="addItemForm" onsubmit="addPackingItem(event)">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <select name="category" required>
+                <option value="">Select Category</option>
+                <option value="Documents">Documents</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Medicines">Medicines</option>
+                <option value="Accessories">Accessories</option>
+                <option value="Essentials">Essentials</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <input type="text" name="item_name" placeholder="Item name" required/>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Item</button>
+        </form>
+      </div>
+
+      {% for category, items in categories.items() %}
+      <div class="packing-category">
+        <h3 class="category-title"><i class="fa fa-box"></i> {{ category }} <span class="item-count">({{ items|length }})</span></h3>
+        <div class="packing-items">
+          {% for item in items %}
+          <div class="packing-item {% if item.is_packed %}packed{% endif %}" id="item-{{ item.id }}">
+            <label class="checkbox-label">
+              <input type="checkbox" {% if item.is_packed %}checked{% endif %} onchange="togglePacking({{ item.id }}, this)"/>
+              <span class="item-name">{{ item.item_name }}</span>
+            </label>
+            <button class="icon-btn danger" onclick="deleteItem({{ item.id }})" title="Delete"><i class="fa fa-trash"></i></button>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+
+      {% if not categories %}
+      <div class="empty-state">
+        <i class="fa fa-luggage-cart"></i>
+        <h3>No items yet</h3>
+        <p>Start adding items to your packing checklist</p>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+
+<script>
+function addPackingItem(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  
+  fetch('{{ url_for("packing_checklist", trip_id=trip.id) }}', {
+    method: 'POST',
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      location.reload();
+    }
+  });
+}
+
+function togglePacking(itemId, checkbox) {
+  fetch(`/toggle-packing/${itemId}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const item = document.getElementById(`item-${itemId}`);
+        if (data.is_packed) {
+          item.classList.add('packed');
+        } else {
+          item.classList.remove('packed');
+        }
+        setTimeout(() => location.reload(), 500);
+      }
+    });
+}
+
+function deleteItem(itemId) {
+  if (confirm('Delete this item?')) {
+    fetch(`/delete-packing-item/${itemId}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        }
+      });
+  }
+}
+</script>
+{% endblock %}

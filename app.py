@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Trip, Stop, Activity, Expense, SavedDestination
+from werkzeug.utils import secure_filename
+from models import db, User, Trip, Stop, Activity, Expense, SavedDestination, PackingItem, CommunityPost, Comment, PostLike, TripNote, Notification, Invoice, Collaboration
 from datetime import datetime, date
-import os
+import os, secrets
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'traveloop-secret-key-2024'
@@ -12,6 +13,9 @@ DB_DIR = os.path.join(BASE_DIR, 'database')
 os.makedirs(DB_DIR, exist_ok=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(DB_DIR, "traveloop.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'static', 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db.init_app(app)
 
@@ -430,3 +434,328 @@ def analytics():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+# ── Phase 3 Routes ───────────────────────────────────────────────────────────
+
+# Packing Checklist
+@app.route('/packing-checklist/<int:trip_id>', methods=['GET', 'POST'])
+@login_required
+def packing_checklist(trip_id):
+    trip = Trip.query.filter_by(id=trip_id, user_id=current_user.id).first_or_404()
+    if request.method == 'POST':
+        item = PackingItem(
+            trip_id=trip_id,
+            category=request.form.get('category', '').strip(),
+            item_name=request.form.get('item_name', '').strip()
+        )
+        db.session.add(item)
+        db.session.commit()
+        return jsonify({'success': True})
+    
+    items = PackingItem.query.filter_by(trip_id=trip_id).all()
+    categories = {}
+    for item in items:
+        if item.category not in categories:
+            categories[item.category] = []
+        categories[item.category].append(item)
+    
+    total = len(items)
+    packed = sum(1 for i in items if i.is_packed)
+    progress = int((packed / total * 100)) if total > 0 else 0
+    
+    return render_template('packing_checklist.html', trip=trip, categories=categories, progress=progress, total=total, packed=packed)
+
+@app.route('/toggle-packing/<int:item_id>', methods=['POST'])
+@login_required
+def toggle_packing(item_id):
+    item = PackingItem.query.get_or_404(item_id)
+    item.is_packed = not item.is_packed
+    db.session.commit()
+    return jsonify({'success': True, 'is_packed': item.is_packed})
+
+@app.route('/delete-packing-item/<int:item_id>', methods=['POST'])
+@login_required
+def delete_packing_item(item_id):
+    item = PackingItem.query.get_or_404(item_id)
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({'success': True})
+
+# Community
+@app.route('/community')
+@login_required
+def community():
+    posts = CommunityPost.query.order_by(CommunityPost.created_at.desc()).all()
+    return render_template('community.html', posts=posts)
+
+@app.route('/create-post', methods=['POST'])
+@login_required
+def create_post():
+    title = request.form.get('title', '').strip()
+    content = request.form.get('content', '').strip()
+    trip_id = request.form.get('trip_id')
+    
+    post = CommunityPost(
+        user_id=current_user.id,
+        title=title,
+        post_content=content,
+        trip_id=int(trip_id) if trip_id else None
+    )
+    
+    if 'image' in request.files:
+        file = request.files['image']
+        if file and file.filename:
+            filename = secure_filename(f"{secrets.token_hex(8)}_{file.filename}")
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            post.image_path = filename
+    
+    db.session.add(post)
+    db.session.commit()
+    
+    # Create notification for followers (placeholder)
+    flash('Post created successfully!', 'success')
+    return redirect(url_for('community'))
+
+@app.route('/like-post/<int:post_id>', methods=['POST'])
+@login_required
+def like_post(post_id):
+    post = CommunityPost.query.get_or_404(post_id)
+    existing = PostLike.query.filter_by(post_id=post_id, user_id=current_user.id).first()
+    
+    if existing:
+        db.session.delete(existing)
+        post.likes_count -= 1
+        liked = False
+    else:
+        like = PostLike(post_id=post_id, user_id=current_user.id)
+        db.session.add(like)
+        post.likes_count += 1
+        liked = True
+        
+        # Create notification
+        if post.user_id != current_user.id:
+            notif = Notification(
+                user_id=post.user_id,
+                notification_text=f"{current_user.first_name} liked your post",
+                notification_type='like',
+                link=f'/community'
+            )
+            db.session.add(notif)
+    
+    db.session.commit()
+    return jsonify({'success': True, 'liked': liked, 'likes_count': post.likes_count})
+
+@app.route('/add-comment/<int:post_id>', methods=['POST'])
+@login_required
+def add_comment(post_id):
+    post = CommunityPost.query.get_or_404(post_id)
+    comment_text = request.form.get('comment', '').strip()
+    
+    if comment_text:
+        comment = Comment(
+            post_id=post_id,
+            user_id=current_user.id,
+            comment_text=comment_text
+        )
+        db.session.add(comment)
+        
+        # Create notification
+        if post.user_id != current_user.id:
+            notif = Notification(
+                user_id=post.user_id,
+                notification_text=f"{current_user.first_name} commented on your post",
+                notification_type='comment',
+                link=f'/community'
+            )
+            db.session.add(notif)
+        
+        db.session.commit()
+        flash('Comment added!', 'success')
+    
+    return redirect(url_for('community'))
+
+# Trip Notes & Journal
+@app.route('/notes/<int:trip_id>', methods=['GET', 'POST'])
+@login_required
+def trip_notes(trip_id):
+    trip = Trip.query.filter_by(id=trip_id, user_id=current_user.id).first_or_404()
+    
+    if request.method == 'POST':
+        note = TripNote(
+            trip_id=trip_id,
+            user_id=current_user.id,
+            note_title=request.form.get('title', '').strip(),
+            note_content=request.form.get('content', '').strip(),
+            note_date=request.form.get('date', '')
+        )
+        db.session.add(note)
+        db.session.commit()
+        flash('Note added!', 'success')
+        return redirect(url_for('trip_notes', trip_id=trip_id))
+    
+    notes = TripNote.query.filter_by(trip_id=trip_id).order_by(TripNote.created_at.desc()).all()
+    return render_template('notes_journal.html', trip=trip, notes=notes)
+
+@app.route('/delete-note/<int:note_id>', methods=['POST'])
+@login_required
+def delete_note(note_id):
+    note = TripNote.query.filter_by(id=note_id, user_id=current_user.id).first_or_404()
+    trip_id = note.trip_id
+    db.session.delete(note)
+    db.session.commit()
+    flash('Note deleted!', 'success')
+    return redirect(url_for('trip_notes', trip_id=trip_id))
+
+# Public Itinerary
+@app.route('/public-itinerary/<int:trip_id>')
+def public_itinerary(trip_id):
+    trip = Trip.query.get_or_404(trip_id)
+    return render_template('public_itinerary.html', trip=trip)
+
+# Invoice
+@app.route('/invoice/<int:trip_id>')
+@login_required
+def invoice(trip_id):
+    trip = Trip.query.filter_by(id=trip_id, user_id=current_user.id).first_or_404()
+    
+    # Check if invoice exists
+    existing_invoice = Invoice.query.filter_by(trip_id=trip_id).first()
+    
+    if not existing_invoice:
+        # Generate invoice
+        invoice_num = f"INV-{trip_id}-{secrets.token_hex(4).upper()}"
+        total = sum(e.amount for e in trip.expenses)
+        
+        new_invoice = Invoice(
+            trip_id=trip_id,
+            invoice_number=invoice_num,
+            total_amount=total,
+            payment_status='unpaid'
+        )
+        db.session.add(new_invoice)
+        db.session.commit()
+        existing_invoice = new_invoice
+    
+    return render_template('invoice.html', trip=trip, invoice=existing_invoice)
+
+@app.route('/toggle-payment/<int:invoice_id>', methods=['POST'])
+@login_required
+def toggle_payment(invoice_id):
+    invoice = Invoice.query.get_or_404(invoice_id)
+    invoice.payment_status = 'paid' if invoice.payment_status == 'unpaid' else 'unpaid'
+    db.session.commit()
+    return jsonify({'success': True, 'status': invoice.payment_status})
+
+# Notifications
+@app.route('/notifications')
+@login_required
+def notifications():
+    notifs = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).all()
+    return render_template('notifications.html', notifications=notifs)
+
+@app.route('/mark-notification-read/<int:notif_id>', methods=['POST'])
+@login_required
+def mark_notification_read(notif_id):
+    notif = Notification.query.filter_by(id=notif_id, user_id=current_user.id).first_or_404()
+    notif.is_read = True
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/delete-notification/<int:notif_id>', methods=['POST'])
+@login_required
+def delete_notification(notif_id):
+    notif = Notification.query.filter_by(id=notif_id, user_id=current_user.id).first_or_404()
+    db.session.delete(notif)
+    db.session.commit()
+    return jsonify({'success': True})
+
+# Collaboration
+@app.route('/collaboration/<int:trip_id>', methods=['GET', 'POST'])
+@login_required
+def collaboration(trip_id):
+    trip = Trip.query.filter_by(id=trip_id, user_id=current_user.id).first_or_404()
+    
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        role = request.form.get('role', 'viewer')
+        
+        collaborator = User.query.filter_by(email=email).first()
+        if collaborator:
+            existing = Collaboration.query.filter_by(trip_id=trip_id, collaborator_id=collaborator.id).first()
+            if not existing:
+                collab = Collaboration(
+                    trip_id=trip_id,
+                    collaborator_id=collaborator.id,
+                    role=role
+                )
+                db.session.add(collab)
+                
+                # Create notification
+                notif = Notification(
+                    user_id=collaborator.id,
+                    notification_text=f"{current_user.first_name} invited you to collaborate on {trip.trip_name}",
+                    notification_type='collaboration',
+                    link=f'/itinerary/{trip_id}'
+                )
+                db.session.add(notif)
+                db.session.commit()
+                flash('Collaborator added!', 'success')
+            else:
+                flash('User already collaborating on this trip.', 'info')
+        else:
+            flash('User not found.', 'error')
+        
+        return redirect(url_for('collaboration', trip_id=trip_id))
+    
+    collaborators = Collaboration.query.filter_by(trip_id=trip_id).all()
+    return render_template('collaboration.html', trip=trip, collaborators=collaborators)
+
+@app.route('/remove-collaborator/<int:collab_id>', methods=['POST'])
+@login_required
+def remove_collaborator(collab_id):
+    collab = Collaboration.query.get_or_404(collab_id)
+    trip_id = collab.trip_id
+    db.session.delete(collab)
+    db.session.commit()
+    flash('Collaborator removed!', 'success')
+    return redirect(url_for('collaboration', trip_id=trip_id))
+
+# Admin Dashboard
+@app.route('/admin-dashboard')
+@login_required
+def admin_dashboard():
+    # Simple admin check (in production, use proper role-based access)
+    if current_user.email != 'admin@traveloop.com':
+        flash('Access denied.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    total_users = User.query.count()
+    total_trips = Trip.query.count()
+    total_posts = CommunityPost.query.count()
+    
+    # Recent users
+    recent_users = User.query.order_by(User.created_at.desc()).limit(10).all()
+    
+    # Popular destinations
+    cities = {}
+    for trip in Trip.query.all():
+        for stop in trip.stops:
+            if stop.city_name:
+                cities[stop.city_name] = cities.get(stop.city_name, 0) + 1
+    
+    popular_cities = sorted(cities.items(), key=lambda x: x[1], reverse=True)[:10]
+    
+    return render_template('admin_dashboard.html', 
+                         total_users=total_users,
+                         total_trips=total_trips,
+                         total_posts=total_posts,
+                         recent_users=recent_users,
+                         popular_cities=popular_cities)
+
+# Export
+@app.route('/export/<int:trip_id>')
+@login_required
+def export_trip(trip_id):
+    trip = Trip.query.filter_by(id=trip_id, user_id=current_user.id).first_or_404()
+    return render_template('export.html', trip=trip)
